@@ -1,0 +1,698 @@
+<title>مافيا</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Reem+Kufi:wght@500;700&display=swap">
+<style>
+/* Concept: one full-height phone frame. Screens are stacked; sheets and cinematic overlays rise above them. Single dark look by design. */
+:root{
+  --bg:#080709; --surface:#110e10; --raised:#1a1516; --line:#2b2326;
+  --text:#ebe4dc; --muted:#8f8485; --crimson:#9e1428; --crimson-hi:#d42b44; --gold:#b99a5e;
+  --f-display:'Reem Kufi','Segoe UI',Tahoma,sans-serif;
+  --f-body:'IBM Plex Sans Arabic','Segoe UI',Tahoma,sans-serif;
+  --f-voice:'Amiri','Traditional Arabic',serif;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--f-body);font-size:16px;line-height:1.6;overflow:hidden;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+#app{position:relative;height:100%;max-width:480px;margin-inline:auto;overflow:hidden;background:var(--bg);border-inline:1px solid #17121400}
+@media (min-width:520px){#app{border-inline-color:var(--line)}}
+
+.screen{position:absolute;inset:0;display:none;flex-direction:column;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px}
+.screen.active{display:flex;animation:scr .5s cubic-bezier(.2,.7,.2,1)}
+@keyframes scr{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* buttons */
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:58px;border-radius:14px;font-size:19px;font-weight:600;letter-spacing:.2px;transition:transform .15s,filter .2s,background .2s}
+.btn:active{transform:scale(.975)}
+.btn.primary{background:linear-gradient(180deg,#b01a30,#7d0f1f);border:1px solid #c0384c55;box-shadow:0 8px 30px -8px #b01a3099, inset 0 1px 0 #ffffff1a}
+.btn.ghost{border:1px solid var(--line);background:#ffffff05;color:var(--text)}
+.btn.ghost:hover{border-color:#4a3c40}
+.btn[disabled]{opacity:.4;pointer-events:none}
+.btn.small{min-height:44px;font-size:16px;border-radius:12px}
+
+/* home */
+#home{justify-content:flex-end;background:radial-gradient(70% 45% at 50% 0%,#6a0f1e55,transparent 70%),radial-gradient(90% 40% at 50% 100%,#1b0f1366,transparent 70%)}
+.cone{position:absolute;top:0;left:50%;width:120%;height:70%;transform:translateX(-50%);background:linear-gradient(180deg,#d9b46a22,transparent 85%);clip-path:polygon(46% 0,54% 0,100% 100%,0 100%);animation:flick 7s infinite;pointer-events:none}
+@keyframes flick{0%,100%{opacity:.75}46%{opacity:.75}48%{opacity:.35}50%{opacity:.8}52%{opacity:.5}55%{opacity:.8}}
+.skyline{position:absolute;inset:auto 0 0 0;width:100%;height:42%;opacity:.8;pointer-events:none}
+.home-mid{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;padding-bottom:6vh}
+.logo{font-family:var(--f-display);font-weight:500;font-size:clamp(58px,17vw,84px);line-height:1.15;margin:0;background:linear-gradient(180deg,#f4ede3 10%,#b99a5e 95%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 26px #d42b4455) drop-shadow(0 2px 0 #000)}
+.tagline{font-family:var(--f-voice);font-size:clamp(19px,5.4vw,23px);color:var(--muted);margin:0}
+.home-actions{position:relative;display:flex;flex-direction:column;gap:14px;padding-bottom:18px}
+#home::before{content:"";position:absolute;inset:auto 0 0 0;height:48%;background:linear-gradient(0deg,#3a0a1466,transparent);pointer-events:none}
+#home .btn.primary{min-height:68px;font-size:22px;box-shadow:0 10px 36px -8px #d42b4499,inset 0 1px 0 #ffffff26}
+#home .btn.ghost{min-height:50px;font-size:16px;font-weight:500;color:var(--muted);background:none;border-color:#2b2326}
+
+/* top bar for form screens */
+.topbar{display:flex;align-items:center;min-height:44px;margin-bottom:10px}
+.back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:16px;min-height:44px;padding-inline:4px}
+.back:hover{color:var(--text)}
+h1.h{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.2;margin:8px 0 26px}
+.form{display:flex;flex-direction:column;gap:22px;flex:1}
+.field label{display:block;font-size:14px;color:var(--muted);margin-bottom:8px;letter-spacing:.3px}
+.input{width:100%;height:56px;border-radius:12px;border:1px solid var(--line);background:var(--surface);padding-inline:16px;font-size:18px;transition:border-color .2s,box-shadow .2s}
+.input::placeholder{color:#5d5254}
+.input:focus{outline:0;border-color:var(--crimson-hi);box-shadow:0 0 0 3px #d42b4422}
+.input.code{direction:ltr;text-align:center;font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.18em;font-size:22px;text-transform:uppercase}
+.input.bad{border-color:var(--crimson-hi);animation:shake .35s}
+@keyframes shake{25%{transform:translateX(6px)}75%{transform:translateX(-6px)}}
+.stepper{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line);background:var(--surface);border-radius:12px;height:72px;padding-inline:8px}
+.stepper button{width:56px;height:56px;border-radius:10px;font-size:28px;color:var(--text);background:var(--raised)}
+.stepper button:active{background:#241c1e}
+.stepper .num{font-family:var(--f-display);font-size:38px;font-weight:700;font-variant-numeric:tabular-nums}
+.stepper .range{font-size:13px;color:var(--muted);display:block;text-align:center;margin-top:-6px}
+.bottom{margin-top:auto;display:flex;flex-direction:column;gap:12px;padding-bottom:10px}
+.hint{font-size:13px;color:var(--crimson-hi);min-height:20px;margin:0}
+.divider{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:13px}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* lobby */
+
+.brand{font-family:var(--f-display);letter-spacing:.55em;font-size:15px;color:var(--gold);text-align:center;margin:6px 0 14px;padding-inline-start:.55em}
+.roomline{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border-block:1px solid var(--line)}
+.roomline .lbl{font-size:13px;color:var(--muted)}
+.roomline .rc{direction:ltr;display:inline-block;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:24px;letter-spacing:.12em;color:var(--text)}
+.qrbtn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding-inline:14px;border-radius:12px;border:1px solid var(--line);font-size:14px;letter-spacing:.1em}
+.plist-head{display:flex;align-items:baseline;justify-content:space-between;margin:20px 0 6px}
+.plist-head h2{margin:0;font-family:var(--f-display);font-size:22px;font-weight:500}
+.count{font-variant-numeric:tabular-nums;color:var(--muted);direction:ltr;font-size:17px}
+.count b{color:var(--text);font-weight:600}
+.plist{flex:1;min-height:0;overflow-y:auto;margin:0;padding:0;list-style:none;scrollbar-width:none}
+.plist::-webkit-scrollbar{display:none}
+.prow{display:flex;align-items:center;gap:14px;min-height:58px;border-bottom:1px solid #ffffff0b;animation:rowin .45s both}
+@keyframes rowin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.av{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-size:18px;background:var(--raised);border:1px solid var(--line);color:var(--text)}
+.pname{flex:1;font-size:18px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{font-size:12px;color:var(--gold);border:1px solid #b99a5e44;border-radius:99px;padding:0 9px;margin-inline-start:8px}
+.ready{display:inline-flex;align-items:center;gap:7px;font-size:14px;color:#7fcf9a}
+.ready i{width:8px;height:8px;border-radius:50%;background:#4fd37e;box-shadow:0 0 8px #4fd37e99}
+.lobby-foot{padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.lobby-foot small{text-align:center;color:var(--muted);font-size:13px}
+
+/* shared top spacing so the demo pill never overlaps content */
+.screen{padding-top:34px}
+
+/* game */
+#game{padding-block:0;padding-top:0;--g1:#4a0b1766;--g2:#09080b;background:radial-gradient(90% 32% at 50% 0%,var(--g1),transparent 72%),var(--g2);transition:none}
+#game.day{--g1:#b99a5e30;--g2:#14100d}
+.ghead{padding-top:34px;padding-bottom:10px}
+.ghead-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.phase{font-family:var(--f-display);font-weight:700;font-size:26px;line-height:1.2;margin:0}
+.alive{font-size:13px;color:var(--muted);margin-top:2px}
+.timer{direction:ltr;font-variant-numeric:tabular-nums;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:30px;letter-spacing:.04em;color:var(--text)}
+.timer.low{color:var(--crimson-hi)}
+.prog{height:2px;background:#ffffff12;margin-top:12px;border-radius:2px;overflow:hidden}
+.prog i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--crimson-hi),var(--gold));transform-origin:right;transition:transform 1s linear}
+
+.chat{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:14px 0 10px;scrollbar-width:none}
+.chat::-webkit-scrollbar{display:none}
+.m{max-width:86%;animation:rowin .45s both}
+.m .n{font-size:13px;margin:0 6px 3px;font-weight:500}
+.m .t{display:inline-block;font-size:17px;line-height:1.55;padding:9px 14px;border-radius:6px 18px 18px 18px;background:var(--surface);border:1px solid #ffffff0d;overflow-wrap:anywhere}
+.m.me{align-self:flex-end}
+.m.me .t{border-radius:18px 6px 18px 18px;background:#5a0f1c99;border-color:#d42b4433}
+.m.nar{align-self:stretch;max-width:none;text-align:center;padding:16px 6px 14px;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
+.m.nar::before,.m.nar::after{content:"";width:60%;height:1px;background:linear-gradient(90deg,transparent,#b99a5e66,transparent)}
+.m.nar .lab{font-size:13px;letter-spacing:.14em;color:var(--gold)}
+.m.nar.priv .lab{color:var(--crimson-hi)}
+.m.nar .t{background:none;border:0;padding:4px 8px;font-family:var(--f-voice);font-size:22px;line-height:1.85;color:#eadfca;border-radius:0;white-space:pre-line}
+.m.sys{align-self:center;max-width:none;font-size:13px;color:var(--muted)}
+
+.dock{padding:10px 0 14px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:10px;background:linear-gradient(180deg,transparent,#0000004d)}
+.chips{display:flex;gap:8px}
+.chip{min-height:48px;padding-inline:16px;border-radius:12px;border:1px solid var(--line);font-size:16px;display:inline-flex;gap:8px;align-items:center;justify-content:center;background:#ffffff05;color:var(--muted);transition:transform .15s,background .2s}
+.chip:active{transform:scale(.97)}
+.chip.act{flex:1;border-color:#b01a3088;background:#9e142838;color:#ffdde1;font-weight:500}
+.chip[disabled]{opacity:.45;pointer-events:none}
+.sendrow{display:flex;gap:8px}
+.msgin{flex:1;min-width:0;height:48px;border-radius:24px;border:1px solid var(--line);background:var(--surface);padding-inline:18px;font-size:16px}
+.msgin:focus{outline:0;border-color:#d42b4488}
+.send{flex:none;width:48px;height:48px;border-radius:50%;background:var(--crimson);display:grid;place-items:center}
+.send svg{transform:scaleX(-1)}
+
+/* sheets */
+.backdrop{position:absolute;inset:0;background:#000b;opacity:0;pointer-events:none;transition:opacity .3s;z-index:30}
+.backdrop.on{opacity:1;pointer-events:auto}
+.sheet{position:absolute;inset:auto 0 0 0;z-index:31;background:#120e10;border-top:1px solid #3a2d31;border-radius:22px 22px 0 0;padding:10px max(16px,env(safe-area-inset-right,0px)) 18px max(16px,env(safe-area-inset-left,0px));transform:translateY(106%);transition:transform .42s cubic-bezier(.2,.8,.2,1);max-height:88%;display:flex;flex-direction:column;box-shadow:0 -20px 60px #000c}
+.sheet.on{transform:none}
+.grab{width:42px;height:4px;border-radius:4px;background:#3a2d31;margin:0 auto 14px;flex:none}
+.sheet h3{font-family:var(--f-display);font-size:26px;font-weight:700;margin:0 0 2px}
+.sheet .sub{color:var(--muted);margin:0 0 14px;font-size:16px}
+.opts{display:flex;flex-direction:column;gap:8px;overflow-y:auto;margin-bottom:14px;scrollbar-width:none}
+.opts::-webkit-scrollbar{display:none}
+.opt{display:flex;align-items:center;gap:14px;min-height:56px;padding-inline:14px;border-radius:12px;border:1px solid var(--line);background:#ffffff04;text-align:start;font-size:18px;transition:border-color .2s,background .2s}
+.opt .rd{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid #4a3c40;transition:.2s}
+.opt.sel{border-color:var(--crimson-hi);background:#9e142833}
+.opt.sel .rd{border-color:var(--crimson-hi);background:radial-gradient(circle,var(--crimson-hi) 0 45%,transparent 50%)}
+.opt .nm{flex:1}
+.opt small{color:var(--muted);font-size:13px}
+
+.rolecard{position:relative;height:240px;border-radius:18px;border:1px solid #3a2d31;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;margin-bottom:12px;background:#0b090a}
+.rolecard .cover,.rolecard .face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px;padding:18px;transition:opacity .25s}
+.rolecard .cover{background:repeating-linear-gradient(135deg,#150f11 0 10px,#110c0e 10px 20px);color:var(--muted)}
+.rolecard .cover b{font-family:var(--f-display);font-size:20px;color:var(--text);font-weight:500}
+.rolecard .face{opacity:0;background:radial-gradient(70% 70% at 50% 30%,#5a0f1c88,#0b090a)}
+.rolecard.rev .cover{opacity:0}
+.rolecard.rev .face{opacity:1}
+.face .ic{font-size:46px;line-height:1}
+.face .rn{font-family:var(--f-display);font-size:42px;font-weight:700;line-height:1.2}
+.face .rd2{font-family:var(--f-voice);font-size:22px;color:#e6d9c3;line-height:1.7}
+.note{font-size:13px;color:var(--muted);text-align:center;margin:0 0 4px}
+
+.qrwrap{display:flex;flex-direction:column;align-items:center;gap:12px;padding:6px 0 10px}
+.qrtile{background:#ebe4dc;padding:14px;border-radius:14px;width:220px;height:220px}
+.qrtile svg{display:block;width:100%;height:100%}
+.qrcode{direction:ltr;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:22px;letter-spacing:.14em}
+
+.demo{position:absolute;top:max(6px,env(safe-area-inset-top,0px));left:max(8px,env(safe-area-inset-left,0px));z-index:20;height:26px;padding-inline:10px;border-radius:13px;font-size:12px;color:var(--muted);background:#ffffff0a;border:1px solid #ffffff10;opacity:.7}
+.demo:hover{opacity:1}
+.grp{font-size:12px;letter-spacing:.12em;color:var(--gold);margin:10px 0 6px}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{min-height:40px;padding-inline:14px;border-radius:20px;border:1px solid var(--line);font-size:15px;background:#ffffff05}
+.pill:active,.pill.on{border-color:var(--crimson-hi);background:#9e142833}
+
+/* overlays */
+.ov{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;gap:10px}
+.ov.on{display:flex}
+#death{z-index:40;background:radial-gradient(70% 50% at 50% 38%,#2a0a12,#050405 75%)}
+#death>*{opacity:0}
+#death.on>*{animation:up .9s cubic-bezier(.2,.7,.2,1) both}
+@keyframes up{from{opacity:0;transform:translateY(14px);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+.dk{font-family:var(--f-display);font-size:20px;color:var(--gold);letter-spacing:.06em;animation-delay:.2s!important}
+.dn{font-family:var(--f-display);font-weight:700;font-size:clamp(54px,18vw,84px);line-height:1.15;margin-top:8px;animation-delay:.9s!important}
+.dr{width:90px;height:2px;background:var(--crimson-hi);box-shadow:0 0 14px var(--crimson-hi);animation-delay:1.3s!important}
+.dl{font-family:var(--f-voice);font-size:28px;animation-delay:1.7s!important}
+.dx{color:var(--crimson-hi);font-size:18px;animation-delay:2.4s!important}
+#dbtn{margin-top:30px;max-width:260px;animation-delay:3.1s!important}
+
+#end{z-index:35;background:radial-gradient(80% 50% at 50% 0%,var(--endglow,#5a0f1c99),transparent 70%),var(--bg);justify-content:flex-start;padding-top:56px;overflow-y:auto}
+#end>.endhead{opacity:0}
+#end.on .endhead{animation:up 1s .1s both}
+.endtitle{font-family:var(--f-display);font-weight:700;font-size:clamp(40px,12vw,54px);line-height:1.2;margin:0;text-shadow:0 0 34px var(--endcol,#d42b44)}
+.endsub{font-family:var(--f-voice);font-size:22px;color:#d8cdb8;margin:6px 0 0}
+.res{width:100%;margin:26px 0 20px;text-align:start}
+.res h4{font-family:var(--f-display);font-size:18px;font-weight:500;color:var(--gold);letter-spacing:.06em;margin:0 0 6px}
+.rrow{display:flex;align-items:center;gap:12px;min-height:52px;border-bottom:1px solid #ffffff0b;opacity:0}
+#end.on .rrow{animation:rowin .5s both}
+.rrow .rl{margin-inline-start:auto;color:var(--text);font-size:17px}
+.rrow.dead .pname{color:var(--muted);text-decoration:line-through}
+.rrow .rl.m{color:var(--crimson-hi)}
+.endbtns{width:100%;display:flex;flex-direction:column;gap:10px;padding-bottom:20px}
+
+#veil{z-index:25;pointer-events:none;opacity:0;background:#000;font-family:var(--f-voice);font-size:34px;justify-content:center}
+#veil.day{background:radial-gradient(90% 70% at 50% 100%,#c9a45f,#1a1209 75%);color:#fff3da}
+#veil.go{display:flex;animation:veil 1.5s ease both}
+@keyframes veil{0%{opacity:0}35%,65%{opacity:1}100%{opacity:0}}
+
+#scan{z-index:42;background:#050405}
+.frame{position:relative;width:min(70vw,260px);aspect-ratio:1;border-radius:18px;background:repeating-linear-gradient(0deg,#ffffff06 0 2px,transparent 2px 6px);overflow:hidden}
+.frame::before{content:"";position:absolute;inset:0;border:2px solid var(--crimson-hi);border-radius:18px;clip-path:polygon(0 0,28% 0,28% 3px,3px 3px,3px 28%,0 28%,0 0,100% 0,100% 28%,calc(100% - 3px) 28%,calc(100% - 3px) 3px,72% 3px,72% 0,100% 0,100% 100%,72% 100%,72% calc(100% - 3px),calc(100% - 3px) calc(100% - 3px),calc(100% - 3px) 72%,100% 72%,100% 100%,0 100%,0 72%,3px 72%,3px calc(100% - 3px),28% calc(100% - 3px),28% 100%,0 100%)}
+.frame i{position:absolute;inset-inline:8px;height:2px;background:var(--crimson-hi);box-shadow:0 0 16px var(--crimson-hi);animation:scanline 1.4s ease-in-out infinite alternate}
+@keyframes scanline{from{top:8%}to{top:90%}}
+
+#toast{position:absolute;z-index:50;bottom:110px;left:50%;transform:translate(-50%,16px);opacity:0;background:#1d1719;border:1px solid #3a2d31;border-radius:24px;padding:10px 18px;font-size:15px;transition:.3s;pointer-events:none;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01s!important;animation-delay:0s!important;transition-duration:.01s!important}
+}
+.nums{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.numb{height:54px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-family:var(--f-display);font-size:21px;font-variant-numeric:tabular-nums;transition:border-color .2s,background .2s,box-shadow .2s}
+.numb:active{transform:scale(.96)}
+.numb.sel{border-color:var(--crimson-hi);background:#9e142840;box-shadow:0 0 18px -4px #d42b4488;color:#fff}
+.brand{font-family:var(--f-display);font-size:34px;font-weight:500;letter-spacing:0;color:var(--gold);text-align:center;margin:2px 0 8px;padding-inline-start:0;line-height:1.2;filter:drop-shadow(0 0 18px #d42b4444)}
+.roomline{justify-content:center;font-size:20px;border-bottom:0;padding:8px 0 4px}
+.roomline .rc{font-size:24px}
+.acts{display:flex;gap:10px;margin:8px 0}
+.acts .btn{flex:1}
+.qrbox{display:flex;justify-content:center;margin:8px 0 2px}
+.qrbox .qrtile{width:150px;height:150px;padding:10px}
+.dx{white-space:pre-line}
+.msgin:disabled{opacity:.5}
+#sheetbody{display:flex;flex-direction:column;min-height:0;overflow-y:auto}
+#sheetbody .opts{flex:0 1 auto;min-height:96px;margin-bottom:14px}
+#sheetbody .btn{flex:none}
+.hostbar{display:flex;gap:8px;margin-top:10px}
+.hostbar .chip{flex:1;min-height:42px;font-size:15px}
+.hostbar .chip.act{flex:1}
+.conn{font-size:13px;color:#7fcf9a}
+.conn.off{color:var(--crimson-hi)}
+.ready.off{color:var(--muted)}
+.ready.off i{background:#6a5f61;box-shadow:none}
+.prow.still{animation:none}
+</style>
+
+<div id="app" dir="rtl" lang="ar">
+
+  <!-- 1. الرئيسية -->
+  <section class="screen active" id="home">
+    <div class="cone"></div>
+    <svg class="skyline" id="sky" viewBox="0 0 400 140" preserveAspectRatio="none" aria-hidden="true"></svg>
+    <div class="home-mid">
+      <h1 class="logo">مافيا</h1>
+      <p class="tagline">في هذه المدينة... لا تثق بأحد.</p>
+    </div>
+    <div class="home-actions">
+      <button class="btn primary" data-go="create">إنشاء غرفة</button>
+      <button class="btn ghost" data-go="join">الانضمام إلى غرفة</button>
+    </div>
+  </section>
+
+  <!-- 2. إنشاء غرفة -->
+  <section class="screen" id="create">
+    <div class="topbar"><button class="back" data-go="home">→ رجوع</button></div>
+    <h1 class="h">إنشاء غرفة</h1>
+    <div class="form">
+      <div class="field">
+        <label for="cname">اسمك في اللعبة</label>
+        <input class="input" id="cname" maxlength="14" placeholder="مثال: حسين" autocomplete="off">
+      </div>
+      <div class="field">
+        <label id="cntlbl">عدد اللاعبين</label>
+        <div class="nums" id="nums" role="radiogroup" aria-labelledby="cntlbl"></div>
+      </div>
+    </div>
+    <div class="bottom"><button class="btn primary" id="docreate">إنشاء الغرفة</button></div>
+  </section>
+
+  <!-- 3. الانضمام -->
+  <section class="screen" id="join">
+    <div class="topbar"><button class="back" data-go="home">→ رجوع</button></div>
+    <h1 class="h">الانضمام إلى غرفة</h1>
+    <div class="form">
+      <div class="field">
+        <label for="jcode">رمز الغرفة</label>
+        <input class="input code" id="jcode" maxlength="8" placeholder="MFA-XXXX" autocomplete="off" spellcheck="false">
+      </div>
+      <button class="btn ghost small" id="doscan">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/></svg>
+        مسح QR
+      </button>
+      <div class="field">
+        <label for="jname">اسمك</label>
+        <input class="input" id="jname" maxlength="14" placeholder="مثال: حسين" autocomplete="off">
+      </div>
+      <p class="hint" id="jhint"></p>
+    </div>
+    <div class="bottom"><button class="btn primary" id="dojoin">انضمام</button></div>
+  </section>
+
+  <!-- 4. غرفة الانتظار -->
+  <section class="screen" id="lobby">
+    <div class="brand">مافيا</div>
+    <div class="roomline"><div>الغرفة: <span class="rc" id="lcode">MFA-7284</span></div></div>
+    <div class="acts">
+      <button class="btn ghost small" id="copybtn">نسخ الكود</button>
+      <button class="btn ghost small" id="sharebtn">مشاركة</button>
+    </div>
+    <div class="qrbox"><div class="qrtile" id="lqr"></div></div>
+    <div class="plist-head"><h2>اللاعبون</h2><span class="conn" id="conn" hidden></span><div class="count"><b id="lcount">1</b> / <span id="lmax">20</span></div></div>
+    <ul class="plist" id="plist"></ul>
+    <div class="lobby-foot"><button class="btn primary" id="dostart">ابدأ اللعبة</button><small id="waitnote" hidden>بانتظار منظّم اللعبة لبدء الجولة</small></div>
+  </section>
+
+  <!-- 5. اللعبة -->
+  <section class="screen night" id="game">
+    <div class="ghead">
+      <div class="ghead-row">
+        <div>
+          <h2 class="phase" id="phase">🌙 الليل</h2>
+          <div class="alive" id="alive">الأحياء 6</div>
+        </div>
+        <div class="timer" id="timer">01:24</div>
+      </div>
+      <div class="prog"><i id="prog"></i></div>
+      <div class="hostbar" id="hostbar" hidden><button class="chip" id="holdbtn">⏸ إيقاف المؤقت</button><button class="chip act" id="nextbtn">⏭ المرحلة التالية</button></div>
+    </div>
+    <div class="chat" id="chat" aria-live="polite"></div>
+    <div class="dock">
+      <div class="chips">
+        <button class="chip" id="rolebtn">🎭 دوري</button>
+        <button class="chip act" id="actbtn" hidden></button>
+      </div>
+      <form class="sendrow" id="sendform">
+        <input class="msgin" id="msgin" placeholder="اكتب رسالة..." autocomplete="off" maxlength="140">
+        <button class="send" aria-label="إرسال"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-3-7z"/></svg></button>
+      </form>
+    </div>
+  </section>
+
+  <!-- 6. نهاية اللعبة -->
+  <section class="screen" id="end">
+    <div class="endhead" style="text-align:center">
+      <h2 class="endtitle" id="endtitle">🔪 انتصار المافيا</h2>
+      <p class="endsub" id="endsub"></p>
+    </div>
+    <div class="res"><h4>نتائج اللعبة</h4><div id="resl"></div></div>
+    <div class="endbtns">
+      <button class="btn primary" id="again">العب مرة أخرى</button>
+      <button class="btn ghost" id="toroom">العودة إلى الغرفة</button>
+      <small id="endwait" hidden style="text-align:center;color:var(--muted);font-size:13px">بانتظار المنظّم لإعادة اللعب</small>
+    </div>
+  </section>
+
+  <button class="demo" id="demobtn">تجربة ⋯</button>
+
+  <div class="backdrop" id="backdrop"></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="grab"></div><div id="sheetbody"></div></div>
+
+  <div class="ov" id="veil"><span id="veiltxt"></span></div>
+
+  <div class="ov" id="death">
+    <div class="dk" id="dk"></div>
+    <div class="dn" id="dn"></div>
+    <div class="dr"></div>
+    <div class="dl" id="dl"></div>
+    <div class="dx" id="dx"></div>
+    <button class="btn ghost" id="dbtn">متابعة</button>
+  </div>
+
+  <div class="ov" id="scan">
+    <div class="frame"><i></i></div>
+    <p style="color:var(--muted);margin:18px 0 0">وجّه الكاميرا نحو رمز QR</p>
+    <p style="color:#5d5254;font-size:13px;margin:0">مسح تجريبي، لا تُستخدم الكاميرا فعليًا</p>
+    <button class="btn ghost small" id="scancancel" style="max-width:200px;margin-top:24px">إلغاء</button>
+  </div>
+
+  <div id="toast"></div>
+</div>
+
+<script>
+const Engine=(function(){
+  const shuffle=(a,r=Math.random)=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+  const deck=n=>{const m=Math.max(1,Math.floor(n/4));const d=[];for(let i=0;i<m;i++)d.push('mafia');d.push('investigator','doctor');if(n>=8)d.push('mute');if(n>=10)d.push('sniper');while(d.length<n)d.push('citizen');return d.slice(0,n);};
+  const assign=(names,r)=>{const d=shuffle(deck(names.length),r),o={};names.forEach((n,i)=>o[n]=d[i]);return o;};
+  const plurality=(list,r=Math.random,prefer=null)=>{if(!list.length)return null;const c={};list.forEach(x=>c[x]=(c[x]||0)+1);const top=Math.max(...Object.values(c));const tied=Object.keys(c).filter(k=>c[k]===top);return prefer&&tied.includes(prefer)?prefer:tied[Math.floor(r()*tied.length)];};
+  const resolveNight=({alive,mafiaVotes,protect,shoot,rnd,prefer})=>{
+    const victim=plurality(mafiaVotes.filter(v=>alive.includes(v)),rnd,prefer);
+    const saved=!!victim&&protect===victim;const dead=[];
+    if(victim&&!saved)dead.push(victim);
+    const shot=!!shoot&&alive.includes(shoot)&&!dead.includes(shoot);if(shot)dead.push(shoot);
+    return {victim,saved,shot,dead};};
+  const tally=(votes)=>{const c={};Object.values(votes).forEach(t=>c[t]=(c[t]||0)+1);const ks=Object.keys(c);if(!ks.length)return {target:null,tie:false,counts:c};
+    const top=Math.max(...ks.map(k=>c[k]));const tied=ks.filter(k=>c[k]===top);return tied.length===1?{target:tied[0],tie:false,counts:c}:{target:null,tie:true,counts:c};};
+  const checkWin=(alive,roles)=>{const m=alive.filter(n=>roles[n]==='mafia').length,o=alive.length-m;if(m===0)return 'citizens';if(m>=o)return 'mafia';return null;};
+  return {shuffle,deck,assign,plurality,resolveNight,tally,checkWin};
+})();
+(function(){
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const NAMES=['علي','أحمد','محمد','كرار','زيد','مصطفى','حسن','عباس','جعفر','يوسف','سجاد','مرتضى','حيدر','باقر','ياسر','منتظر','عمار','قاسم','أمير','رضا'];
+const ORDER=['investigator','doctor','mute','sniper','citizen','mafia'];
+const ROLES={
+  investigator:{ar:'المحقق',short:'محقق',icon:'🔎',desc:'في كل ليلة يمكنك التحقيق مع لاعب واحد.',act:'🔎 تحقيق',title:'🔎 التحقيق',sub:'مع من تريد التحقيق الليلة؟',ok:'تأكيد التحقيق',res:t=>'🔎 نتيجة التحقيق\n'+t+(S.roles[t]==='mafia'?' يتصرف كأحد أفراد المافيا.':' يبدو بريئًا.')},
+  doctor:{ar:'الطبيب',short:'طبيب',icon:'🩺',desc:'في كل ليلة يمكنك حماية لاعب واحد من الموت.',act:'🩺 حماية',title:'🩺 الحماية',sub:'من تريد حمايته الليلة؟',ok:'تأكيد الحماية',self:true,res:t=>'🩺 ستحمي '+t+' هذه الليلة.',fx:t=>{S.protect=t}},
+  mute:{ar:'الميوت',short:'ميوت',icon:'🤐',desc:'يمكنك إسكات لاعب واحد ليصمت طوال النهار.',act:'🤐 إسكات لاعب',title:'🤐 الإسكات',sub:'من تريد إسكاته؟',ok:'تأكيد الإسكات',res:t=>'🤐 '+t+' سيبقى صامتًا طوال النهار.',fx:t=>{S.muteT=t}},
+  sniper:{ar:'القناص',short:'قناص',icon:'🔫',desc:'تملك طلقة واحدة فقط. اختر وقتها بحذر.',act:'🔫 استخدام الطلقة',title:'🔫 الطلقة',sub:'على من تطلق الطلقة؟',ok:'إطلاق الطلقة',res:t=>'🔫 أطلقتَ الطلقة على '+t+'. لا طلقات بعدها.',fx:t=>{S.shoot=t;S.spent=true}},
+  citizen:{ar:'المواطن',short:'مواطن',icon:'👤',desc:'لا قدرة خاصة لك. اعتمد على حدسك وعلى صوتك.',act:null},
+  mafia:{ar:'المافيا',short:'مافيا',icon:'🔪',desc:'اتفقوا في الظلام، واختاروا ضحية كل ليلة.',act:'🔪 اختيار الضحية',title:'🔪 الضحية',sub:'من تختار هذه الليلة؟',ok:'تأكيد الضحية',res:t=>'🔪 اخترتَ '+t+'.',fx:t=>{S.pick=t}}
+};
+const S={me:'حسين',max:12,code:'MFA-7284',host:true,phase:'night',round:1,time:84,total:84,dead:new Set(),roles:{},bots:[],force:null,voted:false,used:false,spent:false,protect:null,pick:null,shoot:null,muteT:null,muted:null,botSpent:false,lastDead:0,suspect:null,resolving:false,hold:false,paused:false,busy:false,lock:false,tick:null,amb:null,ct:[],st:null};
+const NET={ready:null,avail:false,on:false,code:null,pid:null,token:null,es:null,st:null,seen:new Set(),lastPid:null,lastReveal:0,vt:false,connected:false,shown:new Set(),qrDone:false};
+const players=()=>(NET.on&&NET.st)?NET.st.players.map(p=>p.name):[S.me,...S.bots];
+const alive=()=>players().filter(n=>!S.dead.has(n));
+const myRole=()=>S.roles[S.me];
+
+/* skyline */
+(function(){let x=0,h='',seed=7;const r=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  while(x<400){const w=18+r()*22,ht=30+r()*95;h+='<rect x="'+x.toFixed(1)+'" y="'+(140-ht).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+ht.toFixed(1)+'" fill="#0c090b"/>';
+    for(let i=0;i<4;i++){if(r()<.45){const wx=x+4+r()*(w-9),wy=140-ht+6+r()*(ht-14);h+='<rect x="'+wx.toFixed(1)+'" y="'+wy.toFixed(1)+'" width="2.4" height="3.4" fill="'+(r()<.7?'#b99a5e':'#d42b44')+'" opacity="'+(.25+r()*.4).toFixed(2)+'"/>';}}
+    x+=w+1.5;}
+  $('#sky').innerHTML=h;})();
+
+/* helpers */
+let toastT;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2200);}
+function fmt(s){s=Math.max(0,s);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+function hue(n){let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))%360;return h;}
+function show(id){S.screen=id;$$('.screen').forEach(s=>s.classList.remove('active','on'));const el=$('#'+id);el.classList.add('active');if(id==='end')el.classList.add('on');if(id!=='game')stopGame();hideOverlays();}
+function openSheet(html,lock){$('#sheetbody').innerHTML=html;S.lock=!!lock;$('#backdrop').classList.add('on');$('#sheet').classList.add('on');}
+function closeSheet(){$('#backdrop').classList.remove('on');$('#sheet').classList.remove('on');}
+$('#backdrop').onclick=()=>{if(!S.lock)closeSheet();};
+function hideOverlays(){closeSheet();$('#death').classList.remove('on');$('#veil').classList.remove('go');$('#scan').classList.remove('on');clearTimeout(S.scanT);S.paused=false;S.busy=false;}
+function bindPick(onOk){let pick=null;const ok=$('#sheetok');
+  $$('#sheetbody .opt').forEach(o=>o.onclick=()=>{$$('#sheetbody .opt').forEach(x=>x.classList.remove('sel'));o.classList.add('sel');pick=o.dataset.n;});
+  ok.onclick=()=>{if(!pick){toast('اختر لاعبًا أولًا');return;}onOk(pick);};}
+const optsHtml=(list)=>'<div class="opts">'+list.map(n=>'<button class="opt" data-n="'+esc(n)+'"><span class="rd"></span><span class="nm">'+esc(n)+(n===S.me?' <small>(أنت)</small>':'')+'</span></button>').join('')+'</div>';
+
+/* roles */
+function setMyRole(r){const cur=S.roles[S.me];if(cur===r)return;const holder=Object.keys(S.roles).find(n=>S.roles[n]===r);if(holder)S.roles[holder]=cur;S.roles[S.me]=r;}
+function assignRoles(){S.roles=Engine.assign(players());if(S.force)setMyRole(S.force);}
+
+/* navigation */
+$$('[data-go]').forEach(b=>b.onclick=()=>{if(b.dataset.go==='join')$('#jhint').textContent='';show(b.dataset.go);});
+function cleanName(v){let n=(v||'').trim()||'حسين';if(NAMES.includes(n))n+=' 2';return n;}
+(function(){const g=$('#nums');for(let n=6;n<=20;n++){const b=document.createElement('button');b.type='button';b.className='numb'+(n===S.max?' sel':'');b.textContent=n;b.setAttribute('role','radio');b.onclick=()=>{S.max=n;$$('#nums .numb').forEach(x=>x.classList.toggle('sel',x===b));};g.appendChild(b);}})();
+$('#docreate').onclick=async()=>{await NET.ready;if(NET.avail){return netCreate();}S.me=cleanName($('#cname').value);S.host=true;S.code='MFA-7284';buildLobby();show('lobby');};
+$('#jcode').oninput=e=>{e.target.value=e.target.value.toUpperCase();e.target.classList.remove('bad');$('#jhint').textContent='';};
+$('#dojoin').onclick=async()=>{const c=$('#jcode').value.trim();
+  if(c.replace('-','').length<4){const i=$('#jcode');i.classList.remove('bad');void i.offsetWidth;i.classList.add('bad');$('#jhint').textContent='أدخل رمز الغرفة كما وصلك، مثل MFA-7284.';return;}
+  await NET.ready;if(NET.avail){return netJoin(c);}
+  S.me=cleanName($('#jname').value);S.host=false;S.code=c;S.max=12;buildLobby();show('lobby');};
+$('#doscan').onclick=()=>{$('#scan').classList.add('on');S.scanT=setTimeout(()=>{$('#scan').classList.remove('on');$('#jcode').value='MFA-7284';toast('تم مسح الرمز');},1900);};
+$('#scancancel').onclick=()=>{clearTimeout(S.scanT);$('#scan').classList.remove('on');};
+
+function buildLobby(){
+  $('#lcode').textContent=S.code;$('#lmax').textContent=S.max;const list=S.host?[S.me]:[S.me,...NAMES.filter(n=>n!==S.me).slice(0,5)];$('#lcount').textContent=list.length;$('#lqr').innerHTML=qrSvg();
+  $('#plist').innerHTML=list.map((n,i)=>{
+    const tag=n===S.me?'<span class="tag">أنت</span>':'';
+    const host=(S.host&&n===S.me)||(!S.host&&n===list[1])?'<span class="tag">المضيف</span>':'';
+    return '<li class="prow" style="animation-delay:'+(i*70)+'ms"><span class="av">'+esc(n.trim()[0])+'</span><span class="pname">'+esc(n)+tag+host+'</span><span class="ready"><i></i>جاهز</span></li>';
+  }).join('');
+}
+function qrSvg(){let seed=11;const r=()=>(seed=(seed*16807)%2147483647)/2147483647;const N=25;let s='<svg viewBox="0 0 '+N+' '+N+'" shape-rendering="crispEdges" fill="#0b0a0b">';
+  const fin=(x,y)=>'<path fill-rule="evenodd" d="M'+x+' '+y+'h7v7h-7zM'+(x+1)+' '+(y+1)+'v5h5v-5z"/><rect x="'+(x+2)+'" y="'+(y+2)+'" width="3" height="3"/>';
+  const inF=(x,y)=>(x<8&&y<8)||(x>16&&y<8)||(x<8&&y>16);
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){if(!inF(x,y)&&r()<.48)s+='<rect x="'+x+'" y="'+y+'" width="1" height="1"/>';}
+  return s+fin(0,0)+fin(18,0)+fin(0,18)+'</svg>';}
+function copyText(t,msg){try{navigator.clipboard.writeText(t).then(()=>toast(msg),()=>toast('تعذّر النسخ. الكود: '+S.code));}catch(_){toast('تعذّر النسخ. الكود: '+S.code);}}
+$('#copybtn').onclick=()=>copyText(S.code,'تم نسخ الكود');
+$('#sharebtn').onclick=()=>copyText('انضم إلى غرفتي في مافيا: '+S.code+(NET.on?'\n'+location.origin+location.pathname+'?room='+S.code:''),'تم نسخ رسالة الدعوة');
+document.addEventListener('click',e=>{if(e.target.closest('#qrclose'))closeSheet();});
+$('#dostart').onclick=()=>{NET.on?netAct({a:'start'}):startGame();};
+
+/* الراوي الآلي: جمل معرّفة مسبقًا، بلا أي API أو ذكاء اصطناعي */
+const NARR={
+  night:[['حلّ الليل...','أغلقت المدينة أبوابها، وبدأت الأسرار تتحرك في الظلام.'],['سقط الظلام على المدينة...','ومن وراء النوافذ المغلقة، تُحاك المؤامرات.'],['خيّم الصمت على الشوارع...','وفي الظلال، عيونٌ لا تنام.']],
+  night2:[['حلّ الليل من جديد...','والمدينة لم تعد كما كانت.'],['عاد الظلام...','وعاد معه الخوف من الغد.'],['ليلة أخرى تبدأ...','ومن بقي حيًّا يعلم أن الدور قد يصله.']],
+  dayKill:[['أشرقت الشمس...','لكن المدينة فقدت أحد أبنائها.'],['طلع الصباح بوجهٍ شاحب...','فالمدينة تبكي أحد أهلها.'],['انكشف الفجر على خبرٍ ثقيل...','لقد فقدنا أحدًا الليلة.']],
+  dayCalm:[['أشرقت الشمس...','ومرّت الليلة دون ضحايا.'],['طلع الصباح هادئًا...','لكن الهدوء قد يخفي ما هو أسوأ.'],['نجت المدينة الليلة...','ولا يزال بينكم من يتربّص.']],
+  vote:[['أُغلقت صناديق الاقتراع...','وقررت المدينة مصيرها.'],['انتهى التصويت...','وحان وقت إعلان القرار.'],['صمت الجميع...','والأصوات تُحصى الآن.']],
+  winMafia:['«سقطت المدينة في قبضة الظلام.»','«صمتت المدينة، وبقيت المافيا وحدها.»'],
+  winCit:['«استعادت المدينة أمنها... ولو إلى حين.»','«انكشف القناع، ونام الناس مطمئنين.»'],
+  mutedMe:'🤐 أُسكتّ طوال هذا النهار.',
+  mates:'🔪 شركاؤك في المافيا\n'
+};
+const lastN={};
+function narLine(k){const a=NARR[k];let i=Math.floor(Math.random()*a.length);if(a.length>1&&i===lastN[k])i=(i+1)%a.length;lastN[k]=i;const l=a[i];return Array.isArray(l)?l.join('\n'):l;}
+
+/* game core */
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const meAlive=()=>!S.dead.has(S.me);
+function canAct(){const r=ROLES[myRole()];return meAlive()&&!!r.act&&!(myRole()==='sniper'&&S.spent);}
+function stopGame(){clearInterval(S.tick);S.tick=null;clearInterval(S.amb);S.amb=null;S.ct.forEach(clearTimeout);S.ct=[];}
+function resetGame(){stopGame();hideOverlays();
+  S.bots=Engine.shuffle(NAMES.filter(n=>n!==S.me)).slice(0,Math.max(5,S.max-1));
+  S.dead=new Set();S.round=1;S.voted=false;S.used=false;S.spent=false;S.protect=null;S.pick=null;S.shoot=null;S.muteT=null;S.muted=null;S.botSpent=false;S.lastDead=0;S.suspect=null;S.resolving=false;
+  $('#chat').innerHTML='';assignRoles();}
+function startTick(){clearInterval(S.tick);S.tick=setInterval(()=>{if(S.paused||S.busy||S.hold||S.time<=0)return;S.time--;renderTimer();if(S.time<=0)endPhase();},1000);}
+function renderTimer(){const t=$('#timer');t.textContent=fmt(S.time);t.classList.toggle('low',S.time<=10);$('#prog').style.transform='scaleX('+(S.time/S.total)+')';}
+function renderAlive(){$('#alive').textContent='الأحياء '+alive().length+' من '+players().length;}
+function applyPhase(p){S.phase=p;S.resolving=false;S.hold=false;const g=$('#game');g.classList.toggle('night',p==='night');g.classList.toggle('day',p==='day');
+  $('#phase').textContent=p==='night'?'🌙 الليل':'☀️ النهار';S.total=p==='night'?84:80;
+  if(p==='night'){S.used=false;S.pick=null;S.protect=null;S.shoot=null;S.muteT=null;S.muted=null;if(!canAct())S.total=14;}
+  else{S.voted=false;if(!meAlive())S.total=25;const o=alive().filter(n=>n!==S.me);S.suspect=o.length?pick(o):null;}
+  S.time=S.total;renderTimer();renderDock();renderAlive();renderHost();}
+function renderHost(){$('#hostbar').hidden=!S.host;const h=$('#holdbtn');h.textContent=S.hold?'▶ استئناف المؤقت':'⏸ إيقاف المؤقت';h.classList.toggle('act',S.hold);}
+function startGame(){resetGame();show('game');applyPhase('night');nightNarr();startTick();}
+function transition(p,cb){const v=$('#veil');S.busy=true;clearInterval(S.amb);S.ct.forEach(clearTimeout);S.ct=[];
+  v.classList.remove('go');v.classList.toggle('day',p==='day');$('#veiltxt').textContent=p==='day'?'أشرقت الشمس':'حلّ الليل';void v.offsetWidth;v.classList.add('go');
+  setTimeout(cb,700);setTimeout(()=>{v.classList.remove('go');S.busy=false;},1550);}
+
+/* chat */
+function addMsg(o){const c=$('#chat');const d=document.createElement('div');
+  if(o.kind==='nar'||o.kind==='priv'){d.className='m nar'+(o.kind==='priv'?' priv':'');
+    d.innerHTML='<div class="lab">🤖 الراوي'+(o.kind==='priv'?' · لك وحدك':'')+'</div><div class="t"></div>';d.querySelector('.t').textContent=o.text;}
+  else if(o.kind==='sys'){d.className='m sys';d.textContent=o.text;}
+  else{d.className='m'+(o.me?' me':'');const n=document.createElement('div');n.className='n';n.textContent=o.who;n.style.color='hsl('+hue(o.who)+' 38% 70%)';
+    const t=document.createElement('div');t.className='t';t.textContent=o.text;if(!o.me)d.appendChild(n);d.appendChild(t);}
+  c.appendChild(d);c.scrollTop=c.scrollHeight;}
+/* narrator: fixed templates, no AI calls */
+function nightNarr(){addMsg({kind:'nar',text:narLine(S.round===1?'night':'night2')});
+  if(myRole()==='mafia'&&meAlive()){const mates=alive().filter(n=>n!==S.me&&S.roles[n]==='mafia');if(mates.length)addMsg({kind:'priv',text:NARR.mates+mates.join('، ')});}
+  ambientStart();}
+function dayNarr(){addMsg({kind:'nar',text:narLine(S.lastDead?'dayKill':'dayCalm')});
+  if(S.muted===S.me)addMsg({kind:'priv',text:NARR.mutedMe});
+  ambientStart();}
+const DAYL=['أنا أشك بـ{s}.','{s} تصرفه غريب.','لا تتسرعوا بالاتهام.','مين شاف شي مريب؟','أنا مواطن، صدقوني.','{o}، ليش ساكت؟','نصوّت على {s}؟'];
+const NIGHTL=['هدوء غريب هالليلة...','أحد منّا ما راح يطلع من هالليلة.','اهدؤوا شوية.'];
+function ambientStart(){clearInterval(S.amb);if(NET.on)return;let n=0;
+  S.amb=setInterval(()=>{if(S.paused||S.busy||S.hold||S.resolving)return;
+    const sp=alive().filter(x=>x!==S.me&&x!==S.muted);if(!sp.length)return;const who=pick(sp);
+    if(S.phase==='night'){if(n>=3)return;n++;addMsg({who,text:NIGHTL[n-1]});return;}
+    const o=alive().filter(x=>x!==who);const s=(S.suspect&&S.suspect!==who&&alive().includes(S.suspect))?S.suspect:pick(o);
+    addMsg({who,text:pick(DAYL).replace('{s}',s).replace('{o}',pick(o))});},3400);}
+$('#sendform').onsubmit=e=>{e.preventDefault();const i=$('#msgin');const t=i.value.trim();if(!t||i.disabled)return;i.value='';if(NET.on){netAct({a:'chat',text:t});return;}addMsg({who:S.me,text:t,me:true});
+  const others=alive().filter(n=>n!==S.me&&n!==S.muted);if(others.length){const rep=['صحيح، فكرة وجيهة.','ما أظن، بس نشوف.','ليش تقول هيج؟','أنا أراقب الكل.'];
+    S.ct.push(setTimeout(()=>addMsg({who:pick(others),text:pick(rep)}),1800));}};
+
+/* host controls: narrator/organizer only (the room creator) */
+$('#holdbtn').onclick=()=>{if(NET.on){if(S.host)netAct({a:'hold'});return;}if(!S.host||S.paused||S.busy||S.resolving)return;S.hold=!S.hold;renderHost();};
+$('#nextbtn').onclick=()=>{if(NET.on){if(S.host)netAct({a:'next',phaseId:NET.st&&NET.st.phaseId});return;}if(!S.host||S.paused||S.busy||S.resolving)return;S.hold=false;renderHost();endPhase();};
+
+/* dock */
+function renderDock(){const b=$('#actbtn'),r=ROLES[myRole()],al=meAlive();b.hidden=true;b.disabled=false;
+  if(al){if(S.phase==='night'){if(r.act){b.hidden=false;b.textContent=r.act;if(S.used){b.textContent='✓ تم الاختيار';b.disabled=true;}else if(myRole()==='sniper'&&S.spent){b.textContent='🔫 لا طلقات';b.disabled=true;}}}
+    else{b.hidden=false;b.textContent='🗳️ تصويت';if(S.voted){b.textContent='✓ تم التصويت';b.disabled=true;}}}
+  const mi=$('#msgin'),blocked=!al||(S.phase==='day'&&S.muted===S.me);mi.disabled=blocked;
+  mi.placeholder=!al?'أنت خارج اللعبة، تشاهد فقط':(blocked?'أُسكتّ طوال هذا النهار':'اكتب رسالة...');}
+$('#actbtn').onclick=()=>{S.phase==='night'?openAbility():openVote(false);};
+function openAbility(){const key=myRole(),r=ROLES[key];if(!r.act||S.used||S.phase!=='night'||!meAlive())return;
+  let list=alive().filter(n=>r.self||n!==S.me);if(key==='mafia')list=list.filter(n=>S.roles[n]!=='mafia'&&!(NET.on&&(S.mates||[]).includes(n)));
+  openSheet('<h3>'+r.title+'</h3><p class="sub">'+r.sub+'</p>'+optsHtml(list)+'<button class="btn primary" id="sheetok">'+r.ok+'</button>');
+  bindPick(t=>{if(NET.on){netAct({a:'ability',t},closeSheet);return;}S.used=true;if(r.fx)r.fx(t);closeSheet();addMsg({kind:'priv',text:r.res(t)});S.time=Math.min(S.time,8);renderTimer();renderDock();});}
+function openVote(forced){if(S.voted||!meAlive())return;if(forced&&$('#sheet').classList.contains('on')&&$('#sheetbody .opt')){S.lock=true;return;}
+  openSheet('<h3>🗳️ التصويت</h3><p class="sub">من تشك أنه من المافيا؟</p>'+optsHtml(alive().filter(n=>n!==S.me))+'<button class="btn primary" id="sheetok">تأكيد التصويت</button>',forced);
+  bindPick(t=>{if(S.voted)return;if(NET.on){netAct({a:'vote',t},closeSheet);return;}S.voted=true;S.resolving=true;closeSheet();addMsg({kind:'sys',text:'🗳️ سجّلتَ صوتك ضد '+t});renderDock();clearInterval(S.amb);
+    setTimeout(()=>addMsg({kind:'nar',text:narLine('vote')}),1200);
+    setTimeout(()=>dayResult(t),3600);});}
+$('#rolebtn').onclick=openRole;
+function openRole(){const r=ROLES[myRole()];
+  openSheet('<h3>دورك</h3><p class="sub">اضغط مطوّلًا لإظهاره. لا يراه أحد غيرك.</p><div class="rolecard" id="rc" tabindex="0"><div class="cover"><span style="font-size:34px">🎭</span><b>دورك سرّي</b><span>اضغط مطوّلًا للكشف</span></div><div class="face"><span class="ic">'+r.icon+'</span><span class="rn">'+r.ar+'</span><span class="rd2">«'+r.desc+'»</span></div></div><p class="note">ارفع إصبعك ليختفي الدور فورًا.</p><button class="btn ghost small" id="qrclose">إغلاق</button>');
+  const c=$('#rc'),on=()=>c.classList.add('rev'),off=()=>c.classList.remove('rev');
+  c.onpointerdown=e=>{try{c.setPointerCapture(e.pointerId)}catch(_){}on();};
+  c.onpointerup=off;c.onpointercancel=off;c.onlostpointercapture=off;c.oncontextmenu=e=>e.preventDefault();
+  c.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();on();}};c.onkeyup=off;c.onblur=off;}
+
+/* phase results: rules run in code (Engine), bots act at random */
+function endPhase(){if(S.resolving)return;S.resolving=true;clearInterval(S.amb);
+  if(S.phase==='night')nightResult();
+  else if(meAlive()&&!S.voted){S.resolving=false;openVote(true);}
+  else dayResult(null);}
+function nightResult(){closeSheet();S.resolving=true;const al=alive();
+  const mafiaVotes=[];al.filter(n=>S.roles[n]==='mafia').forEach(m=>{if(m===S.me){if(S.pick)mafiaVotes.push(S.pick);}else{const t=al.filter(n=>S.roles[n]!=='mafia');if(t.length)mafiaVotes.push(pick(t));}});
+  let protect=null,shoot=null,muteT=null;
+  al.forEach(n=>{const r=S.roles[n];
+    if(r==='doctor')protect=n===S.me?S.protect:pick(al);
+    if(r==='sniper'){if(n===S.me)shoot=S.shoot;else if(!S.botSpent&&Math.random()<.3){S.botSpent=true;shoot=pick(al.filter(x=>x!==n));}}
+    if(r==='mute')muteT=n===S.me?S.muteT:pick(al.filter(x=>x!==n));});
+  const res=Engine.resolveNight({alive:al,mafiaVotes,protect,shoot,rnd:Math.random,prefer:myRole()==='mafia'?S.pick:null});
+  res.dead.forEach(n=>S.dead.add(n));S.lastDead=res.dead.length;S.muted=(muteT&&!S.dead.has(muteT))?muteT:null;renderAlive();
+  const d=res.dead,x=[];if(d.length&&res.victim&&d.includes(res.victim))x.push('🔪 المافيا ضربت من جديد.');if(res.shot)x.push('🔫 وأُطلقت رصاصة القناص.');if(!d.length)x.push(res.saved?'🩺 يدٌ خفية أنقذت الضحية.':'مرّت الليلة بسلام.');
+  showDeath({k:'☀️ حلّ الصباح',n:d.length?d.join(' و '):'لا أحد',l:d.length?(d.length===1?'خرج من اللعبة.':d.length===2?'خرجا من اللعبة.':'خرجوا من اللعبة.'):'لم يخرج أحد من اللعبة.',x:x.join('\n'),
+    then:()=>{const w=Engine.checkWin(alive(),S.roles);w?endGame(w):morning();}});}
+function morning(){transition('day',()=>{applyPhase('day');dayNarr();});}
+function dayResult(ut){closeSheet();S.resolving=true;const al=alive(),votes={};
+  al.forEach(n=>{if(n===S.me){if(ut)votes[n]=ut;return;}
+    const mf=S.roles[n]==='mafia',pool=al.filter(x=>x!==n&&!(mf&&S.roles[x]==='mafia'));if(!pool.length)return;
+    votes[n]=(S.suspect&&pool.includes(S.suspect)&&Math.random()<.5)?S.suspect:pick(pool);});
+  const r=Engine.tally(votes);
+  if(!r.target){showDeath({k:'🗳️ قرار المدينة',n:'لا أحد',l:'تعادلت الأصوات.',x:'لم يخرج أحد من اللعبة.',then:nextNight});return;}
+  const t=r.target;S.dead.add(t);renderAlive();const m=S.roles[t]==='mafia';
+  showDeath({k:'🗳️ قرار المدينة',n:t,l:'خرج من اللعبة.',x:m?'🎭 كان من المافيا.':'🎭 لم يكن من المافيا.',then:()=>{const w=Engine.checkWin(alive(),S.roles);w?endGame(w):nextNight();}});}
+function nextNight(){S.round++;transition('night',()=>{applyPhase('night');nightNarr();});}
+function showDeath(c){const d=$('#death');S.paused=true;$('#dk').textContent=c.k;$('#dn').textContent=c.n;$('#dn').style.fontSize=c.n.length>9?'clamp(34px,10vw,46px)':'';$('#dl').textContent=c.l;$('#dx').textContent=c.x;
+  d.classList.remove('on');void d.offsetWidth;d.classList.add('on');
+  $('#dbtn').onclick=()=>{d.classList.remove('on');S.paused=false;c.then();};}
+
+/* ending */
+function endGame(w){stopGame();show('end');const m=w==='mafia',e=$('#end');
+  e.style.setProperty('--endglow',m?'#7d0f1fb0':'#b99a5e55');e.style.setProperty('--endcol',m?'#d42b44':'#b99a5e');
+  $('#endtitle').textContent=m?'🔪 انتصار المافيا':'🕵️ انتصار المواطنين';
+  $('#endsub').textContent=narLine(m?'winMafia':'winCit');
+  $('#resl').innerHTML=players().map((n,i)=>'<div class="rrow'+(S.dead.has(n)?' dead':'')+'" style="animation-delay:'+(500+i*90)+'ms"><span class="av">'+esc(n.trim()[0])+'</span><span class="pname">'+esc(n)+(n===S.me?'<span class="tag">أنت</span>':'')+'</span><span class="rl'+(S.roles[n]==='mafia'?' m':'')+'">'+ROLES[S.roles[n]].short+'</span></div>').join('');
+  e.scrollTop=0;}
+$('#again').onclick=()=>{NET.on?netAct({a:'again'}):startGame();};
+$('#toroom').onclick=()=>{if(NET.on){netAct({a:'reset'});return;}buildLobby();show('lobby');};
+
+/* demo menu */
+$('#demobtn').onclick=()=>{
+  const j=(id,t)=>'<button class="pill" data-j="'+id+'">'+t+'</button>';const cur=S.roles[S.me]||S.force;
+  openSheet('<h3>تجربة سريعة</h3><p class="sub">انتقل مباشرة إلى أي حالة. هذه القائمة للنموذج فقط.</p>'
+   +'<div class="grp">الشاشات</div><div class="pills">'+j('home','الرئيسية')+j('create','إنشاء غرفة')+j('join','الانضمام')+j('lobby','غرفة الانتظار')+'</div>'
+   +'<div class="grp">اللعبة</div><div class="pills">'+j('night','الليل')+j('day','النهار')+j('vote','التصويت')+j('death','إعلان الموت')+j('endM','فوز المافيا')+j('endC','فوز المواطنين')+j('skip','تخطّي المؤقت')+'</div>'
+   +'<div class="grp">دوري في اللعبة</div><div class="pills">'+ORDER.map(k=>'<button class="pill'+(cur===k?' on':'')+'" data-r="'+k+'">'+ROLES[k].icon+' '+ROLES[k].short+'</button>').join('')+'</div>');
+  $$('#sheetbody [data-j]').forEach(b=>b.onclick=()=>jump(b.dataset.j));
+  $$('#sheetbody [data-r]').forEach(b=>b.onclick=()=>{S.force=b.dataset.r;if(S.roles[S.me])setMyRole(S.force);$$('#sheetbody [data-r]').forEach(x=>x.classList.toggle('on',x===b));if(S.screen==='game')renderDock();toast('دورك الآن: '+ROLES[b.dataset.r].ar+' (في اللعبة القادمة أيضًا)');});};
+function enterGame(p){resetGame();show('game');if(p==='day'){const v=S.bots.find(n=>S.roles[n]!=='mafia');if(v){S.dead.add(v);S.lastDead=1;}}
+  applyPhase(p);p==='day'?dayNarr():nightNarr();startTick();}
+function jump(id){closeSheet();
+  if(['home','create','join'].includes(id)){show(id);return;}
+  if(id==='lobby'){buildLobby();show('lobby');return;}
+  if(id==='skip'){if(S.screen==='game'){S.time=Math.min(S.time,2);}else toast('ابدأ اللعبة أولًا');return;}
+  if(id==='night'){enterGame('night');return;}
+  if(id==='day'){enterGame('day');return;}
+  if(id==='vote'){enterGame('day');setTimeout(()=>openVote(false),450);return;}
+  if(id==='death'){enterGame('night');setTimeout(()=>{clearInterval(S.amb);nightResult();},450);return;}
+  if(id==='endM'){resetGame();S.bots.filter(n=>S.roles[n]!=='mafia').slice(0,2).forEach(n=>S.dead.add(n));endGame('mafia');return;}
+  if(id==='endC'){resetGame();players().filter(n=>S.roles[n]==='mafia'&&n!==S.me).forEach(n=>S.dead.add(n));S.bots.filter(n=>S.roles[n]!=='mafia').slice(0,1).forEach(n=>S.dead.add(n));endGame('citizens');}}
+
+/* ===== اللعب الجماعي: يعمل عندما تُفتح الصفحة من خادم اللعبة، وإلا يبقى النموذج التجريبي ===== */
+function netProbe(){return new Promise(res=>{const c=new AbortController();const t=setTimeout(()=>{c.abort();res(false);},2500);
+  fetch('api/ping',{cache:'no-store',signal:c.signal}).then(r=>r.ok?r.json():null).then(j=>{clearTimeout(t);res(!!(j&&j.game==='mafia'));}).catch(()=>{clearTimeout(t);res(false);});});}
+function netPost(path,body){return fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(r=>r.json().catch(()=>({})).then(b=>({ok:r.ok,status:r.status,body:b}))).catch(()=>({ok:false,status:0,body:{error:'offline'}}));}
+const NETERR={dup_name:'هذا الاسم مستخدم في الغرفة، اختر اسمًا آخر.',full:'الغرفة ممتلئة، لا يمكن دخول لاعب آخر.',started:'بدأت اللعبة، لا يمكن الانضمام الآن.',no_room:'لا توجد غرفة بهذا الرمز.',name:'اكتب اسمك أولًا.',offline:'تعذّر الاتصال بالخادم. حاول مرة أخرى.',busy:'الخادم مشغول الآن. حاول بعد قليل.'};
+function netSave(){try{localStorage.setItem('mafia_sess',JSON.stringify({code:NET.code,pid:NET.pid,token:NET.token}));}catch(_){}}
+function netForget(){try{localStorage.removeItem('mafia_sess');}catch(_){}if(NET.es){NET.es.close();NET.es=null;}NET.on=false;NET.st=null;NET.shown=new Set();NET.qrDone=false;}
+function netLeave(){if(NET.on&&NET.code){netPost('api/act',{code:NET.code,pid:NET.pid,token:NET.token,a:'leave'});}netForget();}
+function netEnter(b){NET.on=true;NET.code=b.code;NET.pid=b.pid;NET.token=b.token;NET.lastPid=null;NET.lastReveal=0;NET.shown=new Set();NET.qrDone=false;netSave();netConnect();}
+async function netCreate(){const name=$('#cname').value.trim();if(!name){toast(NETERR.name);$('#cname').focus();return;}
+  netLeave();const r=await netPost('api/create',{name,max:S.max});if(!r.ok){toast(NETERR[r.body.error]||NETERR.offline);return;}netEnter(r.body);}
+async function netJoin(c){const name=$('#jname').value.trim();const h=$('#jhint');h.textContent='';
+  if(!name){h.textContent=NETERR.name;$('#jname').focus();return;}
+  netLeave();const r=await netPost('api/join',{code:c,name});if(!r.ok){h.textContent=NETERR[r.body.error]||NETERR.offline;return;}netEnter(r.body);}
+function netAct(body,ok){netPost('api/act',Object.assign({code:NET.code,pid:NET.pid,token:NET.token},body)).then(r=>{
+  if(r.ok){if(ok)ok();return;}const e=r.body.error;
+  if(r.status===401){netForget();show('home');toast('انتهت الغرفة أو الجلسة.');return;}
+  if(e==='min_players')toast('الحد الأدنى 6 لاعبين لبدء اللعبة.');
+  else if(e==='host_only')toast('هذا الأمر للمنظّم فقط.');
+  else if(e==='offline')toast(NETERR.offline);
+  else if(e==='muted')toast('أنت مُسكَت طوال هذا النهار.');});}
+function updConn(){const c=$('#conn');c.hidden=false;c.textContent=NET.connected?'● متصل':'● غير متصل';c.classList.toggle('off',!NET.connected);}
+function netConnect(){if(NET.es)NET.es.close();
+  const es=new EventSource('api/events?code='+encodeURIComponent(NET.code)+'&pid='+encodeURIComponent(NET.pid)+'&token='+encodeURIComponent(NET.token));NET.es=es;
+  es.addEventListener('init',e=>{const d=JSON.parse(e.data);NET.connected=true;NET.seen=new Set();NET.lastReveal=0;$('#chat').innerHTML='';d.log.forEach(netMsg);netState(d.state,true);});
+  es.addEventListener('state',e=>{NET.connected=true;netState(JSON.parse(e.data),false);});
+  es.addEventListener('msg',e=>netMsg(JSON.parse(e.data)));
+  es.onerror=()=>{const was=NET.connected;NET.connected=false;if(NET.st)updConn();
+    if(es.readyState===2){netForget();show('home');toast('انتهت الغرفة أو الجلسة.');}else if(was)toast('انقطع الاتصال، جارٍ إعادة المحاولة...');};}
+function netMsg(m){if(NET.seen.has(m.id))return;NET.seen.add(m.id);
+  if(m.kind==='chat')addMsg({who:m.who,text:m.text,me:m.who===S.me});else addMsg({kind:m.kind,text:m.text});}
+function buildLobbyNet(st){$('#lcode').textContent=st.code;$('#lmax').textContent=st.max;$('#lcount').textContent=st.players.length;
+  if(!NET.qrDone){$('#lqr').innerHTML=qrSvg();NET.qrDone=true;}
+  $('#plist').innerHTML=st.players.map((p,i)=>{const fresh=!NET.shown.has(p.name);
+    return '<li class="prow'+(fresh?'':' still')+'" style="animation-delay:'+(fresh?(i%6)*70:0)+'ms"><span class="av">'+esc(p.name.trim()[0])+'</span><span class="pname">'+esc(p.name)+(p.name===st.me.name?'<span class="tag">أنت</span>':'')+(p.host?'<span class="tag">المنظّم</span>':'')+'</span><span class="ready'+(p.online?'':' off')+'"><i></i>'+(p.online?'متصل':'غير متصل')+'</span></li>';}).join('');
+  st.players.forEach(p=>NET.shown.add(p.name));
+  $('#dostart').hidden=!st.me.host;$('#waitnote').hidden=st.me.host;updConn();}
+function renderNetGame(){const st=NET.st;S.phase=st.phase;const g=$('#game');g.classList.toggle('night',st.phase==='night');g.classList.toggle('day',st.phase==='day');
+  $('#phase').textContent=st.phase==='night'?'🌙 الليل':'☀️ النهار';S.total=st.total;S.time=st.time;renderTimer();renderDock();renderAlive();renderHost();}
+function netReveal(st){const d=$('#death'),r=st.reveal;
+  if(r){if(r.id!==NET.lastReveal){NET.lastReveal=r.id;closeSheet();$('#dk').textContent=r.k;$('#dn').textContent=r.n;$('#dn').style.fontSize=r.n.length>9?'clamp(34px,10vw,46px)':'';$('#dl').textContent=r.l;$('#dx').textContent=r.x;$('#dbtn').hidden=true;d.classList.remove('on');void d.offsetWidth;d.classList.add('on');}}
+  else if(d.classList.contains('on'))d.classList.remove('on');}
+function netState(st,fresh){NET.st=st;
+  S.me=st.me.name;S.host=st.me.host;S.code=st.code;S.max=st.max;S.mates=st.me.mates||[];
+  S.bots=st.players.map(p=>p.name).filter(n=>n!==S.me);
+  S.dead=new Set(st.players.filter(p=>!p.alive).map(p=>p.name));
+  S.roles={};if(st.me.role)S.roles[S.me]=st.me.role;st.players.forEach(p=>{if(p.role)S.roles[p.name]=p.role;});
+  S.used=st.me.used;S.spent=st.me.spent;S.voted=st.me.voted;S.muted=st.me.muted?S.me:null;S.hold=st.hold;S.round=st.round;
+  $('#demobtn').hidden=true;
+  if(st.status==='lobby'){if(S.screen!=='lobby'||fresh)show('lobby');buildLobbyNet(st);return;}
+  if(st.status==='ended'){if(S.screen!=='end')endGame(st.winner);$('#again').hidden=!S.host;$('#toroom').hidden=!S.host;$('#endwait').hidden=S.host;return;}
+  if(S.screen!=='game'){show('game');NET.lastPid=st.phaseId;NET.vt=false;renderNetGame();}
+  else if(st.phaseId!==NET.lastPid){NET.lastPid=st.phaseId;closeSheet();NET.vt=true;transition(st.phase,()=>{NET.vt=false;renderNetGame();});}
+  else if(!NET.vt)renderNetGame();
+  netReveal(st);}
+NET.ready=netProbe().then(ok=>{NET.avail=ok;return ok;});
+NET.ready.then(async ok=>{if(!ok)return;let sv=null;try{sv=JSON.parse(localStorage.getItem('mafia_sess')||'null');}catch(_){}
+  if(sv&&sv.code){const r=await netPost('api/act',Object.assign({a:'ping'},sv));if(r.status!==401&&r.status!==0){NET.on=true;Object.assign(NET,{code:sv.code,pid:sv.pid,token:sv.token});netConnect();return;}try{localStorage.removeItem('mafia_sess');}catch(_){}}
+  const rq=new URLSearchParams(location.search).get('room');if(rq){$('#jcode').value=rq.toUpperCase().slice(0,8);show('join');}});
+
+buildLobby();
+})();
+</script>
