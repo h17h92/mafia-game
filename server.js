@@ -218,6 +218,13 @@ function act(room, p, body) {
     if (room.players.length < MIN_PLAYERS) return 'min_players';
     startGame(room); return null;
   }
+  if (a === 'end') {
+    if (!host) return 'host_only';
+    room.status = 'closed'; room.phaseId++;
+    room.players.forEach(q => { if (q.res) { send(q, 'closed', {}); try { q.res.end(); } catch (_) { } q.res = null; } });
+    rooms.delete(room.code);
+    return null;
+  }
   if (a === 'reset' || a === 'again') {
     if (!host) return 'host_only';
     if (room.status !== 'ended') return 'not_ended';

@@ -246,6 +246,16 @@ h1.h{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.2
 .ready.off{color:var(--muted)}
 .ready.off i{background:#6a5f61;box-shadow:none}
 .prow.still{animation:none}
+.rolesbox{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:12px 14px}
+.rolesbox h4{margin:0 0 8px;font-size:13px;color:var(--muted);font-weight:500;letter-spacing:.3px}
+.rl-list{display:flex;flex-wrap:wrap;gap:8px}
+.rl-chip{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:2px 12px;border:1px solid var(--line);border-radius:99px;font-size:15px}
+.rl-chip b{font-variant-numeric:tabular-nums;color:var(--gold);font-weight:600}
+.rl-chip.m{border-color:#9e142888;background:#9e142822}
+#create .form{overflow-y:auto;min-height:0;scrollbar-width:none}
+#create .form::-webkit-scrollbar{display:none}
+.hostbar .chip{padding-inline:10px}
+#exitbtn{flex:none}
 </style>
 
 <div id="app" dir="rtl" lang="ar">
@@ -277,6 +287,7 @@ h1.h{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.2
         <label id="cntlbl">عدد اللاعبين</label>
         <div class="nums" id="nums" role="radiogroup" aria-labelledby="cntlbl"></div>
       </div>
+      <div class="rolesbox" id="rolesbox" aria-live="polite"><h4>الشخصيات في هذه اللعبة</h4><div class="rl-list" id="rllist"></div></div>
     </div>
     <div class="bottom"><button class="btn primary" id="docreate">إنشاء الغرفة</button></div>
   </section>
@@ -314,7 +325,7 @@ h1.h{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.2
     <div class="qrbox"><div class="qrtile" id="lqr"></div></div>
     <div class="plist-head"><h2>اللاعبون</h2><span class="conn" id="conn" hidden></span><div class="count"><b id="lcount">1</b> / <span id="lmax">20</span></div></div>
     <ul class="plist" id="plist"></ul>
-    <div class="lobby-foot"><button class="btn primary" id="dostart">ابدأ اللعبة</button><small id="waitnote" hidden>بانتظار منظّم اللعبة لبدء الجولة</small></div>
+    <div class="lobby-foot"><button class="btn primary" id="dostart">ابدأ اللعبة</button><button class="btn ghost small" id="lobbyexit" hidden>🚪 انسحاب وإنهاء الغرفة</button><small id="waitnote" hidden>بانتظار منظّم اللعبة لبدء الجولة</small></div>
   </section>
 
   <!-- 5. اللعبة -->
@@ -328,7 +339,7 @@ h1.h{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.2
         <div class="timer" id="timer">01:24</div>
       </div>
       <div class="prog"><i id="prog"></i></div>
-      <div class="hostbar" id="hostbar" hidden><button class="chip" id="holdbtn">⏸ إيقاف المؤقت</button><button class="chip act" id="nextbtn">⏭ المرحلة التالية</button></div>
+      <div class="hostbar" id="hostbar" hidden><button class="chip" id="holdbtn">⏸ إيقاف المؤقت</button><button class="chip act" id="nextbtn">⏭ المرحلة التالية</button><button class="chip" id="exitbtn" aria-label="إنهاء الغرفة">🚪 إنهاء</button></div>
     </div>
     <div class="chat" id="chat" aria-live="polite"></div>
     <div class="dock">
@@ -448,7 +459,11 @@ function assignRoles(){S.roles=Engine.assign(players());if(S.force)setMyRole(S.f
 /* navigation */
 $$('[data-go]').forEach(b=>b.onclick=()=>{if(b.dataset.go==='join')$('#jhint').textContent='';show(b.dataset.go);});
 function cleanName(v){let n=(v||'').trim()||'حسين';if(NAMES.includes(n))n+=' 2';return n;}
-(function(){const g=$('#nums');for(let n=6;n<=20;n++){const b=document.createElement('button');b.type='button';b.className='numb'+(n===S.max?' sel':'');b.textContent=n;b.setAttribute('role','radio');b.onclick=()=>{S.max=n;$$('#nums .numb').forEach(x=>x.classList.toggle('sel',x===b));};g.appendChild(b);}})();
+(function(){const g=$('#nums');for(let n=6;n<=20;n++){const b=document.createElement('button');b.type='button';b.className='numb'+(n===S.max?' sel':'');b.textContent=n;b.setAttribute('role','radio');b.onclick=()=>{S.max=n;$$('#nums .numb').forEach(x=>x.classList.toggle('sel',x===b));renderRoles();};g.appendChild(b);}})();
+const RLABEL={mafia:['🔪','مافيا'],investigator:['🔎','محقق'],doctor:['🩺','طبيب'],mute:['🤐','ميوت'],sniper:['🔫','قناص'],citizen:['👤','مواطن']};
+function renderRoles(){const c={};Engine.deck(S.max).forEach(r=>c[r]=(c[r]||0)+1);
+  $('#rllist').innerHTML=Object.keys(RLABEL).filter(k=>c[k]).map(k=>'<span class="rl-chip'+(k==='mafia'?' m':'')+'"><b>'+c[k]+'</b> '+RLABEL[k][0]+' '+(k==='citizen'&&c[k]>1?'مواطنين':RLABEL[k][1])+'</span>').join('');}
+renderRoles();
 $('#docreate').onclick=async()=>{await NET.ready;if(NET.avail){return netCreate();}S.me=cleanName($('#cname').value);S.host=true;S.code='MFA-7284';buildLobby();show('lobby');};
 $('#jcode').oninput=e=>{e.target.value=e.target.value.toUpperCase();e.target.classList.remove('bad');$('#jhint').textContent='';};
 $('#dojoin').onclick=async()=>{const c=$('#jcode').value.trim();
@@ -459,7 +474,7 @@ $('#doscan').onclick=()=>{$('#scan').classList.add('on');S.scanT=setTimeout(()=>
 $('#scancancel').onclick=()=>{clearTimeout(S.scanT);$('#scan').classList.remove('on');};
 
 function buildLobby(){
-  $('#lcode').textContent=S.code;$('#lmax').textContent=S.max;const list=S.host?[S.me]:[S.me,...NAMES.filter(n=>n!==S.me).slice(0,5)];$('#lcount').textContent=list.length;$('#lqr').innerHTML=qrSvg();
+  $('#lcode').textContent=S.code;$('#lmax').textContent=S.max;const list=S.host?[S.me]:[S.me,...NAMES.filter(n=>n!==S.me).slice(0,5)];$('#lcount').textContent=list.length;$('#lqr').innerHTML=qrSvg();$('#lobbyexit').hidden=!S.host;
   $('#plist').innerHTML=list.map((n,i)=>{
     const tag=n===S.me?'<span class="tag">أنت</span>':'';
     const host=(S.host&&n===S.me)||(!S.host&&n===list[1])?'<span class="tag">المضيف</span>':'';
@@ -541,6 +556,14 @@ function ambientStart(){clearInterval(S.amb);if(NET.on)return;let n=0;
 $('#sendform').onsubmit=e=>{e.preventDefault();const i=$('#msgin');const t=i.value.trim();if(!t||i.disabled)return;i.value='';if(NET.on){netAct({a:'chat',text:t});return;}addMsg({who:S.me,text:t,me:true});
   const others=alive().filter(n=>n!==S.me&&n!==S.muted);if(others.length){const rep=['صحيح، فكرة وجيهة.','ما أظن، بس نشوف.','ليش تقول هيج؟','أنا أراقب الكل.'];
     S.ct.push(setTimeout(()=>addMsg({who:pick(others),text:pick(rep)}),1800));}};
+
+/* إنهاء الغرفة: للمنظّم فقط، مع تأكيد داخل الصفحة */
+function askExit(){if(!S.host)return;
+  openSheet('<h3>إنهاء الغرفة؟</h3><p class="sub">ستنسحب وتُغلق الغرفة، ويُخرَج جميع اللاعبين منها. لا يمكن التراجع.</p><button class="btn primary" id="exitok">نعم، أنهِ الغرفة</button><button class="btn ghost small" id="exitno" style="margin-top:10px">تراجع</button>');
+  $('#exitno').onclick=closeSheet;
+  $('#exitok').onclick=()=>{const done=()=>{closeSheet();if(NET.on)netForget();show('home');toast('تم إنهاء الغرفة.');};
+    if(NET.on)netAct({a:'end'},done);else done();};}
+$('#exitbtn').onclick=askExit;$('#lobbyexit').onclick=askExit;
 
 /* host controls: narrator/organizer only (the room creator) */
 $('#holdbtn').onclick=()=>{if(NET.on){if(S.host)netAct({a:'hold'});return;}if(!S.host||S.paused||S.busy||S.resolving)return;S.hold=!S.hold;renderHost();};
@@ -660,6 +683,7 @@ function netConnect(){if(NET.es)NET.es.close();
   es.addEventListener('init',e=>{const d=JSON.parse(e.data);NET.connected=true;NET.seen=new Set();NET.lastReveal=0;$('#chat').innerHTML='';d.log.forEach(netMsg);netState(d.state,true);});
   es.addEventListener('state',e=>{NET.connected=true;netState(JSON.parse(e.data),false);});
   es.addEventListener('msg',e=>netMsg(JSON.parse(e.data)));
+  es.addEventListener('closed',()=>{if(!NET.on)return;netForget();show('home');toast('أنهى المنظّم الغرفة.');});
   es.onerror=()=>{const was=NET.connected;NET.connected=false;if(NET.st)updConn();
     if(es.readyState===2){netForget();show('home');toast('انتهت الغرفة أو الجلسة.');}else if(was)toast('انقطع الاتصال، جارٍ إعادة المحاولة...');};}
 function netMsg(m){if(NET.seen.has(m.id))return;NET.seen.add(m.id);
@@ -669,7 +693,7 @@ function buildLobbyNet(st){$('#lcode').textContent=st.code;$('#lmax').textConten
   $('#plist').innerHTML=st.players.map((p,i)=>{const fresh=!NET.shown.has(p.name);
     return '<li class="prow'+(fresh?'':' still')+'" style="animation-delay:'+(fresh?(i%6)*70:0)+'ms"><span class="av">'+esc(p.name.trim()[0])+'</span><span class="pname">'+esc(p.name)+(p.name===st.me.name?'<span class="tag">أنت</span>':'')+(p.host?'<span class="tag">المنظّم</span>':'')+'</span><span class="ready'+(p.online?'':' off')+'"><i></i>'+(p.online?'متصل':'غير متصل')+'</span></li>';}).join('');
   st.players.forEach(p=>NET.shown.add(p.name));
-  $('#dostart').hidden=!st.me.host;$('#waitnote').hidden=st.me.host;updConn();}
+  $('#dostart').hidden=!st.me.host;$('#lobbyexit').hidden=!st.me.host;$('#waitnote').hidden=st.me.host;updConn();}
 function renderNetGame(){const st=NET.st;S.phase=st.phase;const g=$('#game');g.classList.toggle('night',st.phase==='night');g.classList.toggle('day',st.phase==='day');
   $('#phase').textContent=st.phase==='night'?'🌙 الليل':'☀️ النهار';S.total=st.total;S.time=st.time;renderTimer();renderDock();renderAlive();renderHost();}
 function netReveal(st){const d=$('#death'),r=st.reveal;
