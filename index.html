@@ -256,6 +256,21 @@ h1.h{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.2
 #create .form::-webkit-scrollbar{display:none}
 .hostbar .chip{padding-inline:10px}
 #exitbtn{flex:none}
+.snd{position:absolute;top:max(6px,env(safe-area-inset-top,0px));right:max(8px,env(safe-area-inset-right,0px));z-index:20;height:26px;min-width:34px;padding-inline:8px;border-radius:13px;font-size:14px;line-height:1;background:#ffffff0a;border:1px solid #ffffff10;opacity:.7}
+.snd:hover{opacity:1}
+.chips{flex-wrap:wrap}
+#meetbtn{flex:1;border-color:#b01a3088;background:#9e142838;color:#ffdde1}
+.mlist{flex:0 1 auto;min-height:120px;max-height:30vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:10px;scrollbar-width:none}
+.mlist::-webkit-scrollbar{display:none}
+.mm{display:flex;flex-direction:column;align-items:flex-start;gap:0;font-size:16px;overflow-wrap:anywhere}
+.mm b{font-size:13px;font-weight:500}
+.mm.me{align-items:flex-end}
+.mm.me span{background:#5a0f1c99;border-radius:12px 4px 12px 12px;padding:4px 12px}
+.mm span{padding:0 2px}
+.mres{white-space:pre-line;text-align:center;border:1px solid #b99a5e55;border-radius:12px;padding:10px;color:#eadfca;font-family:var(--f-voice);font-size:19px;line-height:1.8;background:#b99a5e12}
+.mempty{color:var(--muted);font-size:14px;text-align:center;padding:8px}
+#mpick .opts{max-height:26vh}
+.mdone{margin:0;text-align:center;color:#7fcf9a;font-size:17px;padding:8px 0}
 </style>
 
 <div id="app" dir="rtl" lang="ar">
@@ -344,6 +359,7 @@ h1.h{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.2
     <div class="chat" id="chat" aria-live="polite"></div>
     <div class="dock">
       <div class="chips">
+        <button class="chip" id="meetbtn" hidden>🔪 اجتماع المافيا</button>
         <button class="chip" id="rolebtn">🎭 دوري</button>
         <button class="chip act" id="actbtn" hidden></button>
       </div>
@@ -369,6 +385,7 @@ h1.h{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.2
   </section>
 
   <button class="demo" id="demobtn">تجربة ⋯</button>
+  <button class="snd" id="sndbtn" aria-label="كتم الصوت أو تشغيله">🔊</button>
 
   <div class="backdrop" id="backdrop"></div>
   <div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="grab"></div><div id="sheetbody"></div></div>
@@ -425,7 +442,7 @@ const ROLES={
   mafia:{ar:'المافيا',short:'مافيا',icon:'🔪',desc:'اتفقوا في الظلام، واختاروا ضحية كل ليلة.',act:'🔪 اختيار الضحية',title:'🔪 الضحية',sub:'من تختار هذه الليلة؟',ok:'تأكيد الضحية',res:t=>'🔪 اخترتَ '+t+'.',fx:t=>{S.pick=t}}
 };
 const S={me:'حسين',max:12,code:'MFA-7284',host:true,phase:'night',round:1,time:84,total:84,dead:new Set(),roles:{},bots:[],force:null,voted:false,used:false,spent:false,protect:null,pick:null,shoot:null,muteT:null,muted:null,botSpent:false,lastDead:0,suspect:null,resolving:false,hold:false,paused:false,busy:false,lock:false,tick:null,amb:null,ct:[],st:null};
-const NET={ready:null,avail:false,on:false,code:null,pid:null,token:null,es:null,st:null,seen:new Set(),lastPid:null,lastReveal:0,vt:false,connected:false,shown:new Set(),qrDone:false};
+const NET={meet:[],meetOpen:false,lastPick:null,meetRound:0,ready:null,avail:false,on:false,code:null,pid:null,token:null,es:null,st:null,seen:new Set(),lastPid:null,lastReveal:0,vt:false,connected:false,shown:new Set(),qrDone:false};
 const players=()=>(NET.on&&NET.st)?NET.st.players.map(p=>p.name):[S.me,...S.bots];
 const alive=()=>players().filter(n=>!S.dead.has(n));
 const myRole=()=>S.roles[S.me];
@@ -444,7 +461,7 @@ function fmt(s){s=Math.max(0,s);return String(Math.floor(s/60)).padStart(2,'0')+
 function hue(n){let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))%360;return h;}
 function show(id){S.screen=id;$$('.screen').forEach(s=>s.classList.remove('active','on'));const el=$('#'+id);el.classList.add('active');if(id==='end')el.classList.add('on');if(id!=='game')stopGame();hideOverlays();}
 function openSheet(html,lock){$('#sheetbody').innerHTML=html;S.lock=!!lock;$('#backdrop').classList.add('on');$('#sheet').classList.add('on');}
-function closeSheet(){$('#backdrop').classList.remove('on');$('#sheet').classList.remove('on');}
+function closeSheet(){NET.meetOpen=false;$('#backdrop').classList.remove('on');$('#sheet').classList.remove('on');}
 $('#backdrop').onclick=()=>{if(!S.lock)closeSheet();};
 function hideOverlays(){closeSheet();$('#death').classList.remove('on');$('#veil').classList.remove('go');$('#scan').classList.remove('on');clearTimeout(S.scanT);S.paused=false;S.busy=false;}
 function bindPick(onOk){let pick=null;const ok=$('#sheetok');
@@ -507,6 +524,67 @@ const NARR={
 const lastN={};
 function narLine(k){const a=NARR[k];let i=Math.floor(Math.random()*a.length);if(a.length>1&&i===lastN[k])i=(i+1)%a.length;lastN[k]=i;const l=a[i];return Array.isArray(l)?l.join('\n'):l;}
 
+/* الأصوات: تُولَّد داخل الصفحة بـ Web Audio، بلا ملفات ولا خدمات */
+const SND=(function(){let ctx=null,bus=null,on=true,quiet=false;try{on=localStorage.getItem('mafia_snd')!=='0';}catch(_){}
+  /* مسار صوتي واحد: صدى مولَّد داخليًا + ضاغط يمنع التشويش. كل الأصوات مركّبة بالكود، بلا ملفات */
+  function build(c){const dry=c.createGain(),wet=c.createGain(),conv=c.createConvolver(),lp=c.createBiquadFilter(),cp=c.createDynamicsCompressor();
+    const len=Math.floor(c.sampleRate*2.8),ir=c.createBuffer(2,len,c.sampleRate);
+    for(let ch=0;ch<2;ch++){const d=ir.getChannelData(ch);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.4);}
+    conv.buffer=ir;lp.type='lowpass';lp.frequency.value=4800;wet.gain.value=.6;dry.gain.value=.85;
+    cp.threshold.value=-16;cp.ratio.value=8;cp.attack.value=.004;cp.release.value=.25;
+    bus=c.createGain();bus.connect(dry);bus.connect(conv);conv.connect(wet);dry.connect(lp);wet.connect(lp);lp.connect(cp);cp.connect(c.destination);}
+  const A=()=>{if(!on||quiet)return null;if(!ctx){try{ctx=new(window.AudioContext||window.webkitAudioContext)();build(ctx);}catch(_){ctx=null;return null;}}if(ctx.state==='suspended')ctx.resume().catch(()=>{});return ctx;};
+  function env(g,t,vol,atk,dur){g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+atk);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);}
+  function tone(f,d,o){o=o||{};const c=A();if(!c)return;const t=c.currentTime+(o.at||0);
+    [0,o.det||0].forEach((cents,k)=>{if(k&&!cents)return;const os=c.createOscillator(),g=c.createGain();os.type=o.type||'sine';os.frequency.setValueAtTime(f,t);os.detune.value=cents;
+      if(o.to)os.frequency.exponentialRampToValueAtTime(o.to,t+d);env(g,t,(o.vol||.05)/(o.det?1.6:1),o.atk||.01,d);
+      let n=os;if(o.lp){const fl=c.createBiquadFilter();fl.type='lowpass';fl.frequency.value=o.lp;os.connect(fl);n=fl;}
+      n.connect(g);g.connect(bus);os.start(t);os.stop(t+d+.05);});}
+  function noise(d,o){o=o||{};const c=A();if(!c)return;const t=c.currentTime+(o.at||0),len=Math.floor(c.sampleRate*d),b=c.createBuffer(1,len,c.sampleRate),a=b.getChannelData(0);
+    for(let i=0;i<len;i++)a[i]=Math.random()*2-1;const s=c.createBufferSource(),fl=c.createBiquadFilter(),g=c.createGain();s.buffer=b;fl.type=o.type||'bandpass';fl.Q.value=o.q||.8;
+    fl.frequency.setValueAtTime(o.f||1000,t);if(o.f2)fl.frequency.exponentialRampToValueAtTime(o.f2,t+d);env(g,t,o.vol||.05,o.atk||.005,d);s.connect(fl);fl.connect(g);g.connect(bus);s.start(t);}
+  function howl(at,f0,fp,d,vol){const c=A();if(!c)return;const t=c.currentTime+at;
+    [1,2].forEach((m,k)=>{const os=c.createOscillator(),g=c.createGain(),fl=c.createBiquadFilter(),lf=c.createOscillator(),lg=c.createGain();
+      os.type=k?'sine':'triangle';const fr=os.frequency;fr.setValueAtTime(f0*m,t);fr.linearRampToValueAtTime(fp*m,t+d*.4);fr.linearRampToValueAtTime(fp*m*.98,t+d*.62);fr.exponentialRampToValueAtTime(f0*m*.85,t+d);
+      lf.frequency.value=5.2;lg.gain.value=fp*m*.012;lf.connect(lg);lg.connect(fr);fl.type='lowpass';fl.frequency.value=1500;
+      env(g,t,vol/(k?2.5:1),d*.3,d);os.connect(fl);fl.connect(g);g.connect(bus);os.start(t);lf.start(t);os.stop(t+d+.05);lf.stop(t+d+.05);});
+    noise(d*.9,{at,vol:vol*.3,f:900,f2:700,q:1.5,atk:d*.3});}
+  const rnd=(a,b)=>a+Math.random()*(b-a);
+  function shot(at,vol){noise(.05,{at,vol:vol,type:'highpass',f:2500,q:.5,atk:.0005});noise(.4,{at,vol:vol*.9,type:'lowpass',f:6000,f2:300,q:.6,atk:.001});tone(110,.3,{at,vol:vol*.8,to:40,atk:.002});}
+  function gun(at,vol){shot(at,vol);shot(at+.28,vol*.22);}
+  function snipe(at){shot(at,.6);shot(at+.35,.14);noise(.9,{at:at+.05,vol:.05,type:'lowpass',f:900,f2:250,atk:.05});}
+  function gavel(at){[0,.3].forEach(d=>{noise(.07,{at:at+d,vol:.4,f:1000,q:2.5,atk:.001});tone(190,.12,{at:at+d,vol:.3,to:120,atk:.001});noise(.03,{at:at+d,vol:.15,type:'highpass',f:3000,atk:.0005});});}
+  function thud(at,vol){noise(.5,{at,vol,type:'lowpass',f:320,f2:60,q:.7,atk:.003});tone(70,.35,{at,vol:vol*.8,to:35,atk:.003});}
+  function beat(at,vol){thud(at,vol);thud(at+.2,vol*.7);}
+  function chirp(at,f0,f1,d,vol){tone(f0,d,{at,vol,to:f1,atk:.006});tone(f0*2,d*.7,{at,vol:vol*.25,to:f1*2,atk:.006});}
+  function bird(at,base,n,gap,vol,dir){for(let i=0;i<n;i++){const f=base*rnd(.95,1.08);chirp(at+i*gap,dir>0?f:f*1.3,dir>0?f*1.3:f*.8,rnd(.05,.09),vol);}}
+  function cricket(at,n,vol){for(let i=0;i<n;i++)for(let k=0;k<3;k++)tone(4500,.014,{at:at+i*.4+k*.03,vol,atk:.002});}
+  function applause(at,d,vol){for(let i=0;i<110;i++){const t=rnd(0,d),sh=Math.sin(Math.PI*t/d);noise(rnd(.03,.07),{at:at+t,vol:vol*(.3+sh)*rnd(.5,1),f:rnd(1500,4500),q:.7,atk:.002});}}
+  function heal(at){beat(at,.22);beat(at+.85,.22);beat(at+1.7,.18);tone(1000,.18,{at:at+2.6,vol:.03,atk:.005});}
+  const api={
+    tap(){noise(.03,{vol:.12,f:1500,q:.9});tone(150,.07,{vol:.13,to:90,atk:.003});},
+    whisper(){noise(.45,{vol:.12,f:2600,f2:3800,q:2.2,atk:.15});},
+    nar(){noise(.35,{vol:.07,f:1800,f2:900,q:.7,atk:.08});},
+    night(){noise(4,{vol:.045,f:350,f2:700,q:.6,atk:1.5});cricket(.2,8,.014);howl(.5,320,640,2.6,.12);howl(2.2,260,520,3,.07);},
+    day(){noise(3.5,{vol:.03,f:500,f2:900,q:.5,atk:1.4});bird(.3,3200,4,.11,.11,1);bird(1.1,2400,3,.16,.1,-1);bird(1.8,3800,6,.07,.09,1);bird(2.6,2900,5,.12,.1,1);bird(3.3,3500,3,.1,.09,-1);},
+    shush(){noise(1,{vol:.2,f:5200,f2:4200,q:1,atk:.22});},
+    reveal(k,x){k=k||'';x=x||'';if(k.indexOf('🗳')>=0){gavel(0);if(x.indexOf('🎭')>=0)api.death(.8);return;}
+      let t=0;if(x.indexOf('🔪')>=0){gun(0,.6);t=.7;}if(x.indexOf('🔫')>=0){snipe(t);t+=1.1;}
+      if(x.indexOf('🩺')>=0){heal(.1);return;}if(t)api.death(t);},
+    vote(){gavel(0);},
+    death(a){a=a||0;thud(a,.4);noise(1.3,{at:a+.1,vol:.08,type:'lowpass',f:220,f2:90,atk:.1});},
+    tick(n){const v=.1+Math.max(0,10-(n||10))*.02;beat(0,v*1.8);},
+    win(w){if(w==='mafia'){gun(0,.6);gun(.5,.5);howl(1.3,280,560,3,.12);noise(3,{at:.4,vol:.05,type:'lowpass',f:200,f2:80,atk:.5});}
+      else{applause(0,3.6,.2);bird(.4,3200,4,.12,.1,1);bird(1.4,2500,4,.14,.09,-1);bird(2.4,3700,6,.07,.08,1);}},
+    quiet(b){quiet=!!b;},
+    toggle(){on=!on;try{localStorage.setItem('mafia_snd',on?'1':'0');}catch(_){}return on;},
+    get on(){return on;}};
+  return api;})();
+function paintSnd(){$('#sndbtn').textContent=SND.on?'🔊':'🔇';}
+$('#sndbtn').onclick=()=>{SND.toggle();paintSnd();if(SND.on)SND.tap();};
+paintSnd();
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(b&&b.id!=='sheetok'&&b.id!=='sndbtn')SND.tap();},true);
+
 /* game core */
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const meAlive=()=>!S.dead.has(S.me);
@@ -517,7 +595,7 @@ function resetGame(){stopGame();hideOverlays();
   S.dead=new Set();S.round=1;S.voted=false;S.used=false;S.spent=false;S.protect=null;S.pick=null;S.shoot=null;S.muteT=null;S.muted=null;S.botSpent=false;S.lastDead=0;S.suspect=null;S.resolving=false;
   $('#chat').innerHTML='';assignRoles();}
 function startTick(){clearInterval(S.tick);S.tick=setInterval(()=>{if(S.paused||S.busy||S.hold||S.time<=0)return;S.time--;renderTimer();if(S.time<=0)endPhase();},1000);}
-function renderTimer(){const t=$('#timer');t.textContent=fmt(S.time);t.classList.toggle('low',S.time<=10);$('#prog').style.transform='scaleX('+(S.time/S.total)+')';}
+function renderTimer(){const t=$('#timer');if(S.time>10)S.lt=-1;else if(S.screen==='game'&&S.time>0&&S.lt!==S.time){S.lt=S.time;SND.tick(S.time);}t.textContent=fmt(S.time);t.classList.toggle('low',S.time<=10);$('#prog').style.transform='scaleX('+(S.time/S.total)+')';}
 function renderAlive(){$('#alive').textContent='الأحياء '+alive().length+' من '+players().length;}
 function applyPhase(p){S.phase=p;S.resolving=false;S.hold=false;const g=$('#game');g.classList.toggle('night',p==='night');g.classList.toggle('day',p==='day');
   $('#phase').textContent=p==='night'?'🌙 الليل':'☀️ النهار';S.total=p==='night'?84:80;
@@ -525,13 +603,14 @@ function applyPhase(p){S.phase=p;S.resolving=false;S.hold=false;const g=$('#game
   else{S.voted=false;if(!meAlive())S.total=25;const o=alive().filter(n=>n!==S.me);S.suspect=o.length?pick(o):null;}
   S.time=S.total;renderTimer();renderDock();renderAlive();renderHost();}
 function renderHost(){$('#hostbar').hidden=!S.host;const h=$('#holdbtn');h.textContent=S.hold?'▶ استئناف المؤقت':'⏸ إيقاف المؤقت';h.classList.toggle('act',S.hold);}
-function startGame(){resetGame();show('game');applyPhase('night');nightNarr();startTick();}
-function transition(p,cb){const v=$('#veil');S.busy=true;clearInterval(S.amb);S.ct.forEach(clearTimeout);S.ct=[];
+function startGame(){resetGame();show('game');applyPhase('night');SND.night();nightNarr();startTick();}
+function transition(p,cb){SND[p==='day'?'day':'night']();const v=$('#veil');S.busy=true;clearInterval(S.amb);S.ct.forEach(clearTimeout);S.ct=[];
   v.classList.remove('go');v.classList.toggle('day',p==='day');$('#veiltxt').textContent=p==='day'?'أشرقت الشمس':'حلّ الليل';void v.offsetWidth;v.classList.add('go');
   setTimeout(cb,700);setTimeout(()=>{v.classList.remove('go');S.busy=false;},1550);}
 
 /* chat */
 function addMsg(o){const c=$('#chat');const d=document.createElement('div');
+  if(o.kind==='nar')SND.nar();if(o.kind==='priv'&&/^🤐/.test(o.text||''))SND.shush();
   if(o.kind==='nar'||o.kind==='priv'){d.className='m nar'+(o.kind==='priv'?' priv':'');
     d.innerHTML='<div class="lab">🤖 الراوي'+(o.kind==='priv'?' · لك وحدك':'')+'</div><div class="t"></div>';d.querySelector('.t').textContent=o.text;}
   else if(o.kind==='sys'){d.className='m sys';d.textContent=o.text;}
@@ -557,6 +636,28 @@ $('#sendform').onsubmit=e=>{e.preventDefault();const i=$('#msgin');const t=i.val
   const others=alive().filter(n=>n!==S.me&&n!==S.muted);if(others.length){const rep=['صحيح، فكرة وجيهة.','ما أظن، بس نشوف.','ليش تقول هيج؟','أنا أراقب الكل.'];
     S.ct.push(setTimeout(()=>addMsg({who:pick(others),text:pick(rep)}),1800));}};
 
+/* اجتماع المافيا: قناة سرية، والخادم هو الذي يتحقق من الصلاحية */
+function renderMeetMsgs(){const L=$('#mlist');if(!L)return;L.innerHTML='';
+  if(!NET.meet.length){const e=document.createElement('div');e.className='mempty';e.textContent='لا رسائل بعد.';L.appendChild(e);}
+  NET.meet.forEach(m=>{const d=document.createElement('div');
+    if(m.kind==='mres'){d.className='mres';d.textContent=m.text;}
+    else{d.className='mm'+(m.who===S.me?' me':'');const n=document.createElement('b');n.textContent=m.who;n.style.color='hsl('+hue(m.who)+' 38% 70%)';
+      const t=document.createElement('span');t.textContent=m.text;if(m.who!==S.me)d.appendChild(n);d.appendChild(t);}
+    L.appendChild(d);});L.scrollTop=L.scrollHeight;}
+function renderMeetPick(){const box=$('#mpick');if(!box||!NET.st)return;const st=NET.st,pick=st.me.meetPick;
+  if(pick){box.innerHTML='';const p=document.createElement('p');p.className='mdone';p.textContent='✓ اقتراحك: '+pick;box.appendChild(p);return;}
+  const names=st.players.filter(q=>q.alive&&q.name!==S.me&&!(S.mates||[]).includes(q.name)).map(q=>q.name);
+  box.innerHTML=optsHtml(names)+'<button class="btn primary small" id="mpickok">اقتراح</button>';
+  let sel=null;$$('#mpick .opt').forEach(o=>o.onclick=()=>{$$('#mpick .opt').forEach(x=>x.classList.remove('sel'));o.classList.add('sel');sel=o.dataset.n;});
+  $('#mpickok').onclick=()=>{if(!sel){toast('اختر لاعبًا أولًا');return;}SND.vote();netAct({a:'mpick',t:sel});};}
+function openMeet(){if(!NET.on||!meAlive()||myRole()!=='mafia'||S.phase!=='night')return;
+  openSheet('<h3>🔪 اجتماع المافيا</h3><p class="sub">قناة سرية بين أفراد المافيا الأحياء فقط.</p><div class="mlist" id="mlist"></div>'
+    +'<form class="sendrow" id="mform"><input class="msgin" id="mmsg" maxlength="140" placeholder="اكتب لشركائك..." autocomplete="off"><button class="send" aria-label="إرسال"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-3-7z"/></svg></button></form>'
+    +'<div class="grp">🎯 اقتراح الضحية</div><div id="mpick"></div><button class="btn ghost small" id="qrclose" style="margin-top:10px">إغلاق</button>');
+  NET.meetOpen=true;NET.lastPick=NET.st.me.meetPick||null;renderMeetMsgs();renderMeetPick();
+  $('#mform').onsubmit=e=>{e.preventDefault();const i=$('#mmsg'),t=i.value.trim();if(!t)return;i.value='';netAct({a:'mchat',text:t});};}
+$('#meetbtn').onclick=openMeet;
+
 /* إنهاء الغرفة: للمنظّم فقط، مع تأكيد داخل الصفحة */
 function askExit(){if(!S.host)return;
   openSheet('<h3>إنهاء الغرفة؟</h3><p class="sub">ستنسحب وتُغلق الغرفة، ويُخرَج جميع اللاعبين منها. لا يمكن التراجع.</p><button class="btn primary" id="exitok">نعم، أنهِ الغرفة</button><button class="btn ghost small" id="exitno" style="margin-top:10px">تراجع</button>');
@@ -570,7 +671,7 @@ $('#holdbtn').onclick=()=>{if(NET.on){if(S.host)netAct({a:'hold'});return;}if(!S
 $('#nextbtn').onclick=()=>{if(NET.on){if(S.host)netAct({a:'next',phaseId:NET.st&&NET.st.phaseId});return;}if(!S.host||S.paused||S.busy||S.resolving)return;S.hold=false;renderHost();endPhase();};
 
 /* dock */
-function renderDock(){const b=$('#actbtn'),r=ROLES[myRole()],al=meAlive();b.hidden=true;b.disabled=false;
+function renderDock(){const b=$('#actbtn'),r=ROLES[myRole()],al=meAlive();b.hidden=true;b.disabled=false;$('#meetbtn').hidden=!(NET.on&&al&&S.phase==='night'&&myRole()==='mafia');
   if(al){if(S.phase==='night'){if(r.act){b.hidden=false;b.textContent=r.act;if(S.used){b.textContent='✓ تم الاختيار';b.disabled=true;}else if(myRole()==='sniper'&&S.spent){b.textContent='🔫 لا طلقات';b.disabled=true;}}}
     else{b.hidden=false;b.textContent='🗳️ تصويت';if(S.voted){b.textContent='✓ تم التصويت';b.disabled=true;}}}
   const mi=$('#msgin'),blocked=!al||(S.phase==='day'&&S.muted===S.me);mi.disabled=blocked;
@@ -582,7 +683,7 @@ function openAbility(){const key=myRole(),r=ROLES[key];if(!r.act||S.used||S.phas
   bindPick(t=>{if(NET.on){netAct({a:'ability',t},closeSheet);return;}S.used=true;if(r.fx)r.fx(t);closeSheet();addMsg({kind:'priv',text:r.res(t)});S.time=Math.min(S.time,8);renderTimer();renderDock();});}
 function openVote(forced){if(S.voted||!meAlive())return;if(forced&&$('#sheet').classList.contains('on')&&$('#sheetbody .opt')){S.lock=true;return;}
   openSheet('<h3>🗳️ التصويت</h3><p class="sub">من تشك أنه من المافيا؟</p>'+optsHtml(alive().filter(n=>n!==S.me))+'<button class="btn primary" id="sheetok">تأكيد التصويت</button>',forced);
-  bindPick(t=>{if(S.voted)return;if(NET.on){netAct({a:'vote',t},closeSheet);return;}S.voted=true;S.resolving=true;closeSheet();addMsg({kind:'sys',text:'🗳️ سجّلتَ صوتك ضد '+t});renderDock();clearInterval(S.amb);
+  bindPick(t=>{if(S.voted)return;SND.vote();if(NET.on){netAct({a:'vote',t},closeSheet);return;}S.voted=true;S.resolving=true;closeSheet();addMsg({kind:'sys',text:'🗳️ سجّلتَ صوتك ضد '+t});renderDock();clearInterval(S.amb);
     setTimeout(()=>addMsg({kind:'nar',text:narLine('vote')}),1200);
     setTimeout(()=>dayResult(t),3600);});}
 $('#rolebtn').onclick=openRole;
@@ -620,12 +721,12 @@ function dayResult(ut){closeSheet();S.resolving=true;const al=alive(),votes={};
   const t=r.target;S.dead.add(t);renderAlive();const m=S.roles[t]==='mafia';
   showDeath({k:'🗳️ قرار المدينة',n:t,l:'خرج من اللعبة.',x:m?'🎭 كان من المافيا.':'🎭 لم يكن من المافيا.',then:()=>{const w=Engine.checkWin(alive(),S.roles);w?endGame(w):nextNight();}});}
 function nextNight(){S.round++;transition('night',()=>{applyPhase('night');nightNarr();});}
-function showDeath(c){const d=$('#death');S.paused=true;$('#dk').textContent=c.k;$('#dn').textContent=c.n;$('#dn').style.fontSize=c.n.length>9?'clamp(34px,10vw,46px)':'';$('#dl').textContent=c.l;$('#dx').textContent=c.x;
+function showDeath(c){SND.reveal(c.k,c.x);const d=$('#death');S.paused=true;$('#dk').textContent=c.k;$('#dn').textContent=c.n;$('#dn').style.fontSize=c.n.length>9?'clamp(34px,10vw,46px)':'';$('#dl').textContent=c.l;$('#dx').textContent=c.x;
   d.classList.remove('on');void d.offsetWidth;d.classList.add('on');
   $('#dbtn').onclick=()=>{d.classList.remove('on');S.paused=false;c.then();};}
 
 /* ending */
-function endGame(w){stopGame();show('end');const m=w==='mafia',e=$('#end');
+function endGame(w){stopGame();show('end');SND.win(w);const m=w==='mafia',e=$('#end');
   e.style.setProperty('--endglow',m?'#7d0f1fb0':'#b99a5e55');e.style.setProperty('--endcol',m?'#d42b44':'#b99a5e');
   $('#endtitle').textContent=m?'🔪 انتصار المافيا':'🕵️ انتصار المواطنين';
   $('#endsub').textContent=narLine(m?'winMafia':'winCit');
@@ -680,13 +781,14 @@ function netAct(body,ok){netPost('api/act',Object.assign({code:NET.code,pid:NET.
 function updConn(){const c=$('#conn');c.hidden=false;c.textContent=NET.connected?'● متصل':'● غير متصل';c.classList.toggle('off',!NET.connected);}
 function netConnect(){if(NET.es)NET.es.close();
   const es=new EventSource('api/events?code='+encodeURIComponent(NET.code)+'&pid='+encodeURIComponent(NET.pid)+'&token='+encodeURIComponent(NET.token));NET.es=es;
-  es.addEventListener('init',e=>{const d=JSON.parse(e.data);NET.connected=true;NET.seen=new Set();NET.lastReveal=0;$('#chat').innerHTML='';d.log.forEach(netMsg);netState(d.state,true);});
+  es.addEventListener('init',e=>{const d=JSON.parse(e.data);NET.connected=true;NET.seen=new Set();NET.lastReveal=0;NET.meet=[];$('#chat').innerHTML='';SND.quiet(true);d.log.forEach(netMsg);SND.quiet(false);netState(d.state,true);});
   es.addEventListener('state',e=>{NET.connected=true;netState(JSON.parse(e.data),false);});
   es.addEventListener('msg',e=>netMsg(JSON.parse(e.data)));
   es.addEventListener('closed',()=>{if(!NET.on)return;netForget();show('home');toast('أنهى المنظّم الغرفة.');});
   es.onerror=()=>{const was=NET.connected;NET.connected=false;if(NET.st)updConn();
     if(es.readyState===2){netForget();show('home');toast('انتهت الغرفة أو الجلسة.');}else if(was)toast('انقطع الاتصال، جارٍ إعادة المحاولة...');};}
 function netMsg(m){if(NET.seen.has(m.id))return;NET.seen.add(m.id);
+  if(m.kind==='mchat'||m.kind==='mres'){NET.meet.push(m);if(m.kind==='mchat'&&m.who!==S.me)SND.whisper();if(NET.meetOpen)renderMeetMsgs();return;}
   if(m.kind==='chat')addMsg({who:m.who,text:m.text,me:m.who===S.me});else addMsg({kind:m.kind,text:m.text});}
 function buildLobbyNet(st){$('#lcode').textContent=st.code;$('#lmax').textContent=st.max;$('#lcount').textContent=st.players.length;
   if(!NET.qrDone){$('#lqr').innerHTML=qrSvg();NET.qrDone=true;}
@@ -697,9 +799,11 @@ function buildLobbyNet(st){$('#lcode').textContent=st.code;$('#lmax').textConten
 function renderNetGame(){const st=NET.st;S.phase=st.phase;const g=$('#game');g.classList.toggle('night',st.phase==='night');g.classList.toggle('day',st.phase==='day');
   $('#phase').textContent=st.phase==='night'?'🌙 الليل':'☀️ النهار';S.total=st.total;S.time=st.time;renderTimer();renderDock();renderAlive();renderHost();}
 function netReveal(st){const d=$('#death'),r=st.reveal;
-  if(r){if(r.id!==NET.lastReveal){NET.lastReveal=r.id;closeSheet();$('#dk').textContent=r.k;$('#dn').textContent=r.n;$('#dn').style.fontSize=r.n.length>9?'clamp(34px,10vw,46px)':'';$('#dl').textContent=r.l;$('#dx').textContent=r.x;$('#dbtn').hidden=true;d.classList.remove('on');void d.offsetWidth;d.classList.add('on');}}
+  if(r){if(r.id!==NET.lastReveal){NET.lastReveal=r.id;SND.reveal(r.k,r.x);closeSheet();$('#dk').textContent=r.k;$('#dn').textContent=r.n;$('#dn').style.fontSize=r.n.length>9?'clamp(34px,10vw,46px)':'';$('#dl').textContent=r.l;$('#dx').textContent=r.x;$('#dbtn').hidden=true;d.classList.remove('on');void d.offsetWidth;d.classList.add('on');}}
   else if(d.classList.contains('on'))d.classList.remove('on');}
 function netState(st,fresh){NET.st=st;
+  if(st.round!==NET.meetRound){NET.meetRound=st.round;NET.meet=[];}
+  if(NET.meetOpen&&(st.me.meetPick||null)!==NET.lastPick){NET.lastPick=st.me.meetPick||null;renderMeetPick();}
   S.me=st.me.name;S.host=st.me.host;S.code=st.code;S.max=st.max;S.mates=st.me.mates||[];
   S.bots=st.players.map(p=>p.name).filter(n=>n!==S.me);
   S.dead=new Set(st.players.filter(p=>!p.alive).map(p=>p.name));
@@ -708,7 +812,7 @@ function netState(st,fresh){NET.st=st;
   $('#demobtn').hidden=true;
   if(st.status==='lobby'){if(S.screen!=='lobby'||fresh)show('lobby');buildLobbyNet(st);return;}
   if(st.status==='ended'){if(S.screen!=='end')endGame(st.winner);$('#again').hidden=!S.host;$('#toroom').hidden=!S.host;$('#endwait').hidden=S.host;return;}
-  if(S.screen!=='game'){show('game');NET.lastPid=st.phaseId;NET.vt=false;renderNetGame();}
+  if(S.screen!=='game'){const fromLobby=S.screen==='lobby';show('game');NET.lastPid=st.phaseId;NET.vt=false;renderNetGame();if(fromLobby)SND[st.phase==='day'?'day':'night']();}
   else if(st.phaseId!==NET.lastPid){NET.lastPid=st.phaseId;closeSheet();NET.vt=true;transition(st.phase,()=>{NET.vt=false;renderNetGame();});}
   else if(!NET.vt)renderNetGame();
   netReveal(st);}
